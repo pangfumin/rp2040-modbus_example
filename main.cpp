@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "pico/multicore.h"
 
-#include "modbus.hpp"
+#include "ModbusPico.hpp"
 
 //////////////////////////////////////////////////////////////////
 // Modbus parameters
@@ -14,13 +14,13 @@
 #define MB_STOP_BITS     1
 #define MB_PARITY        UART_PARITY_NONE
 
-#define MB_UART_NUMBER   1
-#define MB_TX_PIN        4
-#define MB_RX_PIN        5
+#define MB_UART_NUMBER   0
+#define MB_TX_PIN        0
+#define MB_RX_PIN        1
 
-#define MB_DE_PIN        7
+#define MB_DE_PIN        2
 
-ModbusManager modbus;
+ModbusPico modbus;
 //////////////////////////////////////////////////////////////////
 
 
@@ -69,7 +69,7 @@ int main(void)
 
   while(true)
   {
-    printf("core 0 in sleep...");
+//    printf("core 0 in sleep...");
     sleep_ms(1000);
   }
 }
