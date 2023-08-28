@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 
@@ -10,7 +9,7 @@
 
 
 bool ModbusPico::debug=true;
-uint8_t ModbusPico::Coils[COILS_MAX]={25,3,4,5,6,7,8,9};
+uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN,3,4,5,6,7,8,9};
 uint8_t ModbusPico::Inputs[INPUTS_MAX]={14,15,16,17,18,19,20,21};
 
 void ModbusPico::printResponse(int v)
@@ -89,9 +88,10 @@ uint8_t ModbusPico::mb_read_coil_status(uint16_t start, uint16_t count) {
 __attribute__((weak))
 uint8_t ModbusPico::mb_write_single_coil(uint16_t start, uint16_t value) {
   if(debug)
-     printf("Write SingleCoil start:%u  value:%u\n\r",start,value);
+     printf("Write SingleCoil start:%u  gpio:%u value:%u\n\r",start,value,Coils[start]);
   if(start>= COILS_MAX)
       return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+  
   gpio_put(Coils[start],value != 0 ? 1 : 0);
   mb_response_add_single_register(start);
   mb_response_buf_pos++;
@@ -147,8 +147,14 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
                         uint8_t rx_pin, uint8_t tx_pin, uint8_t de_pin)
  {
      int loop;
-     ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,
-                            rx_pin, tx_pin, de_pin);
+     if(debug)
+         printf("init\n\r");
+
+
+
+     if(debug)
+         printf("initialize coils\n\r");
+
 
     // enable Coils
     for(loop=0;loop<COILS_MAX;loop++)
@@ -157,11 +163,21 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
          gpio_set_dir(Coils[loop], GPIO_OUT);
       }
 
+     if(debug)
+         printf("initialize inputs\n\r");
+
+
     for(loop=0;loop<INPUTS_MAX;loop++)
       {
-         gpio_init(Coils[loop]);
-         gpio_set_dir(Coils[loop], GPIO_IN);
+         gpio_init(Inputs[loop]);
+         gpio_set_dir(Inputs[loop], GPIO_IN);
       }
+
+
+     ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,
+                            rx_pin, tx_pin, de_pin);
+
+
  }
 
 

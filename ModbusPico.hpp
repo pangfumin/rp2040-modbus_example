@@ -14,7 +14,6 @@ public:
     static uint8_t Coils[COILS_MAX];
     static uint8_t Inputs[INPUTS_MAX];
 
-
     void mb_init(uint8_t slave_address, uint8_t uart_num,
              uint32_t baudrate, uint8_t data_bits, uint8_t stop_bits, uart_parity_t parity,
              uint8_t rx_pin, uint8_t tx_pin, uint8_t de_pin);

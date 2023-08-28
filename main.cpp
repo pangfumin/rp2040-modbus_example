@@ -53,6 +53,11 @@ void modbus_process_on_core_1()
 int main(void)
 {
   stdio_init_all();
+
+  // put a delay to enable USB serial
+    sleep_ms(3000);
+
+
   printf("Modbus demo firmware start\r\n");
 
   modbus.mb_init(MB_SLAVE_ADDRESS, 
