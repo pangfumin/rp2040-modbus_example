@@ -10,9 +10,15 @@ public:
     static const int COILS_MAX=8;
     static const int INPUTS_MAX=8;
     static const int DS18B20_MAX=16;
+    static const int ADC_MAX=5;  
+    // be aware than adc3 is vsys * 2/3 only on pico
+    //  adc4 is the onboard temperature
+    // all adc returns the raw 12bits
 
     static uint8_t Coils[COILS_MAX];
     static uint8_t Inputs[INPUTS_MAX];
+    static uint8_t Adc[ADC_MAX];
+
 
     uint16_t dsSensorCount;
     int16_t dsSensors[DS18B20_MAX];
@@ -27,6 +33,10 @@ public:
     // DS18B20 sensor register
     static const uint16_t MB_COMMAND_DS18B20_REGISTER_COUNT=2000;
     static const uint16_t MB_COMMAND_DS18B20_REGISTER=2001; // up to 2016
+
+    // ADC
+    static const uint16_t MB_COMMAND_ADC_REGISTER=2100;  //up to 2104
+    // *** special register 2105 is the onboard temperature in celsius * 10.0
 
     uint16_t UniqueID[4];
 
