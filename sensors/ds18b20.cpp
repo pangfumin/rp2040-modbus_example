@@ -36,8 +36,8 @@ uint8_t ds18b20::scanSensors()
 
       // get Address of sensor
 
-      if(count > ds18b20::sensorMax)
-         count = ds18b20::sensorMax
+      if(count > sensorMax)
+         count = sensorMax;
 
       for(loop=0;loop<count;loop++)
           {

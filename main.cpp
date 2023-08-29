@@ -87,6 +87,9 @@ int main(void)
       if(!sensorFirstTime)
        {
         modbus.dsSensorCount= ds_sensor.count;
+        if(modbus.dsSensorCount > modbus.DS18B20_MAX)
+           modbus.dsSensorCount=modbus.DS18B20_MAX;
+
         for(loop=0;loop<ds_sensor.count;loop++)
            modbus.dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
        }

@@ -9,7 +9,7 @@ public:
     static bool debug;
     static const int COILS_MAX=8;
     static const int INPUTS_MAX=8;
-    static const int DS18B20_MAX=8;
+    static const int DS18B20_MAX=16;
 
     static uint8_t Coils[COILS_MAX];
     static uint8_t Inputs[INPUTS_MAX];
@@ -26,7 +26,7 @@ public:
 
     // DS18B20 sensor register
     static const uint16_t MB_COMMAND_DS18B20_REGISTER_COUNT=2000;
-    static const uint16_t MB_COMMAND_DS18B20_REGISTER=2001; // up to 2009
+    static const uint16_t MB_COMMAND_DS18B20_REGISTER=2001; // up to 2016
 
     uint16_t UniqueID[4];
 
