@@ -7,7 +7,7 @@
 // check this github for one wire
 // https://github.com/adamboardman/pico-onewire
 
-    bool ds18b20::debug= false;
+    bool ds18b20::debug= true;
 
     ds18b20::ds18b20(uint8_t gpioPin)
     {

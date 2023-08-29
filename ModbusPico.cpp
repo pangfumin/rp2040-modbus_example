@@ -81,12 +81,22 @@ uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
          return MB_NO_ERROR;
        }
      if(dsSensorCount >0)
+      {
        if((address >= MB_COMMAND_DS18B20_REGISTER) &&
           (address < (MB_COMMAND_DS18B20_REGISTER+dsSensorCount)))
           {
            *reg = dsSensors[address - MB_COMMAND_DS18B20_REGISTER];
            return MB_NO_ERROR;
           }
+       if((address >= MB_COMMAND_DS18B20_REGISTER_ADDRESS) &&
+          (address < (MB_COMMAND_DS18B20_REGISTER_ADDRESS+(dsSensorCount*4))))
+          {
+          *reg = dsSensorsAddress[address - MB_COMMAND_DS18B20_REGISTER_ADDRESS];
+           return MB_NO_ERROR;
+          }
+
+      }
+
      return MB_ERROR_ILLEGAL_DATA_ADDRESS;
 }
 

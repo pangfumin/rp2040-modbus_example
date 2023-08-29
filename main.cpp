@@ -21,6 +21,8 @@
 #define MB_DE_PIN        2
 
 ModbusPico modbus;
+ds18b20 ds_sensor(13);
+
 //////////////////////////////////////////////////////////////////
 
 
@@ -50,6 +52,31 @@ void modbus_process_on_core_1()
 }
 
 
+void UpdateDS18B20Sensor()
+{
+        ds_sensor.scanSensors();
+
+           modbus.dsSensorCount=modbus.DS18B20_MAX;
+        if(ds_sensor.count > modbus.DS18B20_MAX)
+           modbus.dsSensorCount = modbus.DS18B20_MAX;
+        else
+           modbus.dsSensorCount = ds_sensor.count;
+
+        if(modbus.dsSensorCount>0)
+        {
+          // fill sensor address
+          for(int loop=0;loop<modbus.dsSensorCount;loop++)
+             for(int reg16=0;reg16<4;reg16++)
+              {
+                  modbus.dsSensorsAddress[loop*4 + reg16]= (uint16_t) ds_sensor.sensorAddress[loop].rom[reg16*2]<<8 |
+							   (uint16_t) (ds_sensor.sensorAddress[loop].rom[reg16*2+1]);
+              }
+        }
+
+}
+
+
+
 int main(void)
 {
 
@@ -59,8 +86,6 @@ int main(void)
 
   // put a delay to enable USB serial
     sleep_ms(3000);
-  ds18b20 ds_sensor(13);
-  ds_sensor.scanSensors();
 
   printf("Modbus demo firmware start\r\n");
 
@@ -75,22 +100,21 @@ int main(void)
                  MB_DE_PIN);
 
   multicore_launch_core1(modbus_process_on_core_1);
+  UpdateDS18B20Sensor();
 
   while(true)
   {
 //    printf("core 0 in sleep...");
     sleep_ms(1000);
     if(ds_sensor.count==0)
-        ds_sensor.scanSensors();
+     {
+       UpdateDS18B20Sensor();
+     }
     else
     {
       if(!sensorFirstTime)
        {
-        modbus.dsSensorCount= ds_sensor.count;
-        if(modbus.dsSensorCount > modbus.DS18B20_MAX)
-           modbus.dsSensorCount=modbus.DS18B20_MAX;
-
-        for(loop=0;loop<ds_sensor.count;loop++)
+        for(loop=0;loop<modbus.dsSensorCount;loop++)
            modbus.dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
        }
         sensorFirstTime=0;
