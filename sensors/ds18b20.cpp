@@ -19,6 +19,13 @@
         count=0;
     }
 
+    ds18b20::~ds18b20()
+    {
+     if(onewire)
+      delete onewire;
+     onewire=__null;
+    }
+
 uint8_t ds18b20::scanSensors()
     {
       int loop;
@@ -28,6 +35,10 @@ uint8_t ds18b20::scanSensors()
       if(debug) printf("%d\r\n",count);
 
       // get Address of sensor
+
+      if(count > ds18b20::sensorMax)
+         count = ds18b20::sensorMax
+
       for(loop=0;loop<count;loop++)
           {
             sensorAddress[loop] = onewire->get_address(loop);

@@ -84,6 +84,7 @@ uint8_t ModbusPico::mb_read_input_registers(uint16_t start, uint16_t count)
      mb_response_buf_pos++;
      mb_response_add_single_register(array[loop]);
     }
+   delete []array;
    printResponse(22);
    return MB_NO_ERROR;
 }
