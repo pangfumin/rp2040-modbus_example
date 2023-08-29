@@ -42,6 +42,55 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 
 
 
+
+uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
+{
+     if(address == MB_COMMAND_DS18B20_REGISTER_COUNT)
+       {
+         *reg = dsSensorCount;
+         return MB_NO_ERROR;
+       }
+     if(dsSensorCount >0)
+       if((address >= MB_COMMAND_DS18B20_REGISTER) &&
+          (address < (MB_COMMAND_DS18B20_REGISTER+dsSensorCount)))
+          {
+           *reg = dsSensors[address - MB_COMMAND_DS18B20_REGISTER];
+           return MB_NO_ERROR;
+          }
+     return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+}
+
+
+uint8_t ModbusPico::mb_read_input_registers(uint16_t start, uint16_t count)
+{
+
+   // first scan to see if all address are valid
+   int loop;
+   printResponse(21);
+
+   if(count ==0)
+         return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+   uint16_t * array = new uint16_t[count];
+   for(loop=0;loop<count;loop++)
+      if(mb_validate_input_register(start+loop,&array[loop]) == MB_ERROR_ILLEGAL_DATA_ADDRESS)
+        {
+         delete []array;
+         return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+        }
+    // ok all valid then write the stuff
+    mb_response_buf[2]= count*2;
+    for(loop=0;loop<count;loop++)
+    {
+     mb_response_buf_pos++;
+     mb_response_add_single_register(array[loop]);
+    }
+   printResponse(22);
+   return MB_NO_ERROR;
+}
+
+
+
+
 uint8_t ModbusPico::mb_read_input_status(uint16_t start, uint16_t count) {
   printResponse(1);
   uint8_t mask=1;
@@ -203,7 +252,6 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
 
      ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,
                             rx_pin, tx_pin, de_pin);
-
 
  }
 

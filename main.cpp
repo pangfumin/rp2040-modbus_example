@@ -3,8 +3,8 @@
 #include <pico/stdlib.h>
 #include <stdio.h>
 #include "pico/multicore.h"
-
 #include "ModbusPico.hpp"
+#include "sensors/ds18b20.hpp"
 
 //////////////////////////////////////////////////////////////////
 // Modbus parameters
@@ -52,11 +52,15 @@ void modbus_process_on_core_1()
 
 int main(void)
 {
+
   stdio_init_all();
+  int loop;
+  uint8_t sensorFirstTime=1;
 
   // put a delay to enable USB serial
     sleep_ms(3000);
-
+  ds18b20 ds_sensor(13);
+  ds_sensor.scanSensors();
 
   printf("Modbus demo firmware start\r\n");
 
@@ -76,6 +80,19 @@ int main(void)
   {
 //    printf("core 0 in sleep...");
     sleep_ms(1000);
+    if(ds_sensor.count==0)
+        ds_sensor.scanSensors();
+    else
+    {
+      if(!sensorFirstTime)
+       {
+        modbus.dsSensorCount= ds_sensor.count;
+        for(loop=0;loop<ds_sensor.count;loop++)
+           modbus.dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
+       }
+        sensorFirstTime=0;
+        ds_sensor.startConversion();
+    }
   }
 }
 

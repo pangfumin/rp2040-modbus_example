@@ -7,9 +7,11 @@ project(modbus_v2 C CXX ASM)
 set(CMAKE_C_STANDART 11)
 set(CMAKE_CXX_STANDART 17)
 
-include_directories(./)		# Расположение заголовочных файлов
+include_directories(./ ./sensors)
 set(SOURCES main.cpp
-    modbus.cpp modbus.hpp ModbusPico.cpp ModbusPico.hpp)
+    modbus.cpp modbus.hpp ModbusPico.cpp ModbusPico.hpp
+    sensors/ds18b20.cpp sensors/ds18b20.hpp
+    sensors/one_wire.cpp sensors/one_wire.h)
 
 pico_sdk_init()
 

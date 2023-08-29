@@ -76,6 +76,7 @@ public:
     static const uint16_t MB_SENSOR_1_REGISTER=1001;
     static const uint16_t MB_SENSOR_2_REGISTER=1002;
 
+
 protected:
     void mb_response_add(uint16_t value);
     void mb_response_add_single_register(uint16_t value);
