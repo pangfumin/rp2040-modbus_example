@@ -2,7 +2,10 @@
 This repository contain **working** example Modbus RTU Slave implementation for rp2040 (Raspberry Pi Pico) with C++ SDK
 
 This is a fork from https://github.com/gleboss-redfab/rp2040-modbus_example<br>
-From the skeleton I added  8 output, 8 inputs, one wire DS18B20 line and analog ADC input.<br>
+From the fork base class modbusManager, modbus.hpp,  I create a subclass ModbusPico.<br>
+This way I just need to modify ModbusPico class to add function.<br>
+
+On the current example the modbus layout has 8 outputs, 8 inputs, one wire DS18B20 line and analog ADC inputs.<br>
 
 <img src="PicoModbusLayout.jpg" height=480>
 
@@ -26,13 +29,13 @@ From the skeleton I added  8 output, 8 inputs, one wire DS18B20 line and analog 
 - Change UART parameters in main.cpp and registers layout in modbus.cpp for your purpose
 - Change stored data inside Modbus Manager class
 - Change Switch-case optins according to your data and registers in *mb_read_holding_register()* and *mb_write_single_register()*
-
-## TODO:
-- incapsulation for class data
-- register layout definition throw init
-- register checking throw std::dict instead of switch-case
-- move on_mb_rx() to class logic
-- mb_write_multiple_registers()
-- mb_read_input_registers()
 - 
+## How to compile using a raspberry Pi connected to the swd
+-  clone the github.  <b>git clone https://github.com/danjperron/rp2040-modbus_example.git</b><br>
+-  Enter the  rp2040-modbus_example folder.   <b>cd rp2040-modbus_example</b><br>
+-  Create the build folder.   <b>mkdir build</b><br>
+-  Enter the build folder.     <b>cd build</b><br>
+-  Create the cmake environnement.     <b>cmake ..</b>
+-  Compile.       <b>make</b><br>
+-  To transfer use openocd.  https://iosoft.blog/2019/01/28/raspberry-pi-openocd <br>
 
