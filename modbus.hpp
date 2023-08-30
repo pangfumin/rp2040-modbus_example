@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <hardware/uart.h>
 
-// Constatnts
+// Constants
 
 
 // определено в main
