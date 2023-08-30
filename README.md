@@ -1,7 +1,7 @@
 # Modbus RTU Slave library for Raspberry Pi Pico (RP2040) based on the C++ SDK
 This repository contain **working** example Modbus RTU Slave implementation for rp2040 (Raspberry Pi Pico) with C++ SDK
 
-This is an fork from https://github.com/gleboss-redfab/rp2040-modbus_example<br>
+This is a fork from https://github.com/gleboss-redfab/rp2040-modbus_example<br>
 From the skeleton I added  8 output, 8 inputs, one wire DS18B20 line and analog ADC input.<br>
 
 <img src="PicoModbusLayout.jpg" height=480>
