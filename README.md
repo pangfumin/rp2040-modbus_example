@@ -31,6 +31,7 @@ On the current example the modbus layout has 8 outputs, 8 inputs, one wire DS18B
 - Change Switch-case optins according to your data and registers in *mb_read_holding_register()* and *mb_write_single_register()*
 - 
 ## How to compile using a raspberry Pi connected to the swd
+-  Follow the installation step from the PDF  "Raspberry Pi Pico c/C++ SDK". https://www.raspberrypi.com/documentation/microcontrollers/c_sdk.html
 -  clone the github.  <b>git clone https://github.com/danjperron/rp2040-modbus_example.git</b><br>
 -  Enter the  rp2040-modbus_example folder.   <b>cd rp2040-modbus_example</b><br>
 -  Create the build folder.   <b>mkdir build</b><br>
