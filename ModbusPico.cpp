@@ -96,14 +96,19 @@ uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
           }
 
       }
+
+      if(address ==MB_COMMAND_MB280_VALID_REGISTER)
+      {
+          *reg = bme280Valid;
+           return MB_NO_ERROR;
+      }
+
       if((address >=MB_COMMAND_MB280_REGISTER)&&
          (address < MB_COMMAND_MB280_REGISTER+(BME280_MAX*3*2)))
          {
           *reg = bme280Sensors[address - MB_COMMAND_MB280_REGISTER];
            return MB_NO_ERROR;
          }
-
-
 
      return MB_ERROR_ILLEGAL_DATA_ADDRESS;
 }

@@ -57,6 +57,7 @@ void modbus_process_on_core_1()
         {
           modbus.bme280Sensors[loop]= modbus._t_bme280Sensors[loop];
         }
+        modbus.bme280Valid = modbus._t_bme280Valid;
       multicore_fifo_pop_blocking();
      }
     modbus.mb_process();
@@ -136,8 +137,8 @@ int main(void)
 
   multicore_launch_core1(modbus_process_on_core_1);
   UpdateDS18B20Sensor();
-  bme280[0].read();
-  bme280[0].read();
+  for(loop=0;loop<modbus.BME280_MAX;loop++)
+      bme280[loop].read();
 
   while(true)
   {
@@ -152,28 +153,43 @@ int main(void)
        {
         for(loop=0;loop<modbus.dsSensorCount;loop++)
            modbus._t_dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
+
+       modbus._t_bme280Valid=0;
+
        for(loop=0;loop<modbus.BME280_MAX;loop++)
         {
-        bme280[loop].read();
-        int32_t temp;
-        uint32_t hum;
-        uint32_t pres;
-        temp = bme280[loop].temperature();
-        hum = bme280[loop].humidity();
-        pres = bme280[loop].pressure();
+         // ok check if we see the sensor on i2c
+         if(bme280[loop].readId() == BME280_ID)
+          {
+               // ok found sensor
+            modbus._t_bme280Valid |= 1<<loop;
+            bme280[loop].read();
+            int32_t temp;
+            uint32_t hum;
+            uint32_t pres;
+            temp = bme280[loop].temperature();
+            hum = bme280[loop].humidity();
+            pres = bme280[loop].pressure();
 
-        modbus._t_bme280Sensors[loop*6]= temp>>16;
-        modbus._t_bme280Sensors[loop*6+1]= temp&0xffff;
-        modbus._t_bme280Sensors[loop*6+2]= hum>>16;
-        modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
-        modbus._t_bme280Sensors[loop*6+4]= pres>>16;
-        modbus._t_bme280Sensors[loop*6+5]= pres&0xffff;
+            modbus._t_bme280Sensors[loop*6]= temp>>16;
+            modbus._t_bme280Sensors[loop*6+1]= temp&0xffff;
+            modbus._t_bme280Sensors[loop*6+2]= hum>>16;
+            modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
+            modbus._t_bme280Sensors[loop*6+4]= pres>>16;
+            modbus._t_bme280Sensors[loop*6+5]= pres&0xffff;
+         }
+         else
+         {
+            for(int loop2=0;loop2<6;loop2++)
+                modbus._t_bme280Sensors[loop*6+loop2]= 0;
+         }
+
         }
-         // send flag to second core to update 
+         // send flag to second core to update
         multicore_fifo_push_blocking(1);
       }
-        sensorFirstTime=0;
         ds_sensor.startConversion();
+        sensorFirstTime=0;
     }
       sleep_ms(5000);
   }
