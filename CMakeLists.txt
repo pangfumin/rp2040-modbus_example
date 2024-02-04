@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-project(modbus_v2 C CXX ASM)
+project(modbus_v3 C CXX ASM)
 
 set(CMAKE_C_STANDART 11)
 set(CMAKE_CXX_STANDART 17)
@@ -10,8 +10,10 @@ set(CMAKE_CXX_STANDART 17)
 include_directories(./ ./sensors)
 set(SOURCES main.cpp
     modbus.cpp modbus.hpp ModbusPico.cpp ModbusPico.hpp
+    myI2C.cpp myI2C.hpp
     sensors/ds18b20.cpp sensors/ds18b20.hpp
-    sensors/one_wire.cpp sensors/one_wire.h)
+    sensors/one_wire.cpp sensors/one_wire.h
+    sensors/BME280.cpp sensors/BME280.h)
 
 pico_sdk_init()
 
@@ -30,6 +32,7 @@ target_link_libraries(
     pico_stdlib
     pico_multicore
     hardware_adc
+    hardware_i2c
 )
 
 pico_enable_stdio_usb(  ${PROJECT_NAME} 1)

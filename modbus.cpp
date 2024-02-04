@@ -18,10 +18,6 @@ uint8_t ModbusManager::mb_read_input_status(uint16_t start, uint16_t count) {
   return MB_ERROR_ILLEGAL_DATA_ADDRESS;
 }
 
-// РАЛИЗОВАННО
-// __attribute__((weak)) uint8_t mb_read_holding_registers(uint16_t start, uint16_t count) {
-//   return MB_ERROR_ILLEGAL_DATA_ADDRESS;
-// }
 
 __attribute__((weak))
 uint8_t ModbusManager::mb_read_input_registers(uint16_t start, uint16_t count) {
@@ -33,10 +29,6 @@ uint8_t ModbusManager::mb_write_single_coil(uint16_t start, uint16_t value) {
   return MB_ERROR_ILLEGAL_DATA_ADDRESS;
 }
 
-// РАЛИЗОВАННО
-// __attribute__((weak)) uint8_t mb_write_single_register(uint16_t start, uint16_t value) {
-//   return MB_ERROR_ILLEGAL_DATA_ADDRESS;
-// }
 
 __attribute__((weak))
 uint8_t ModbusManager::mb_write_multiple_coils(uint16_t start, uint8_t* values, uint16_t len) {
@@ -121,7 +113,6 @@ void ModbusManager::mb_error(uint8_t err )
 }
 
 
-//тут поменял местами запись в регистры
 void ModbusManager::mb_response_add(uint16_t value)
 {
   mb_response_buf[2] += 2;
@@ -131,10 +122,9 @@ void ModbusManager::mb_response_add(uint16_t value)
 }
 
 
-// для write single register
 void ModbusManager::mb_response_add_single_register(uint16_t value) 
 {
-  mb_response_buf_pos--; // не надо передавать длинну сбщ
+  mb_response_buf_pos--; 
   mb_response_buf[mb_response_buf_pos++] = (value & 0xFF00) >> 8;
   mb_response_buf[mb_response_buf_pos++] = value & 0xFF;
 
@@ -276,7 +266,7 @@ void ModbusManager::mb_process()
   switch (mb_state) {
     case MB_INVALID_FUNCTION:
       mb_error(MB_ERROR_ILLEGAL_FUNCTION);
-      
+
     case MB_INVALID_SLAVE_ADDRESS:
       mb_reset_buf();
       break;
@@ -291,8 +281,6 @@ void ModbusManager::mb_process()
 }
 
 
-// Задаются только writable регистры
-// чтобы добавить новые, сделать по образцу существующих case
 uint8_t ModbusManager::mb_write_single_register(uint16_t start, uint16_t value)
 {
     uint16_t val;
@@ -327,8 +315,6 @@ uint8_t ModbusManager::mb_write_single_register(uint16_t start, uint16_t value)
 }
 
 
-// readable регистры
-// чтобы добавить новые, сделать по образцу существующих case
 uint8_t ModbusManager::mb_read_holding_register(uint16_t addr, uint16_t* reg) 
 {
     switch (addr) 

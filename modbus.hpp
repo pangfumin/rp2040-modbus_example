@@ -6,12 +6,8 @@
 // Constants
 
 
-// определено в main
-// КОСТЫЛЬ
 extern void on_mb_rx();
 
-// хз почему внутри класса не работает
-// КОСТЫЛЬ
 typedef enum { MB_DATA_READY, MB_DATA_INCOMPLETE, MB_INVALID_SLAVE_ADDRESS, MB_INVALID_FUNCTION } mb_state_t;
 
 //#define MB_RX_BUF_SIZE 64
