@@ -10,6 +10,20 @@ On the current example the modbus layout has 8 outputs, 8 inputs, one wire DS18B
 <img src="PicoModbusLayout.jpg" height=480>
 
 
+## Update Feb 2024
+- add two bme280 sensors on i2c gpio10 and gpio11<br>
+  input register address<br>
+  2200   bit0=bme280 sensor 1, bit1=bme280 sensor 2.  0=Invalid 1=Valid<br>
+  2201..2202   sensor 1  signed   32bits temperature * 100 in celsius<br>
+  2203..2204   sensor 1  unsigned 32bits Humidity * 1024   in %<br>
+  2205..2206   sensor 1  signed   32bits Pressure * 100    in HPa<br>
+  2207..2208   sensor 1  signed   32bits temperature * 100 in celsius<br>
+  2209..2210   sensor 1  unsigned 32bits Humidity * 1024   in %<br>
+  2211..2212   sensor 1  signed   32bits Pressure * 100    in HPa<br>
+  <br>
+  Check readBME280.py for info<br>
+
+
 ## Features:
 - Modbus RTU Slave
 - **RS-485** support
