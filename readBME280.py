@@ -14,9 +14,9 @@ while True:
         for loop in range(2):
             print("Node {}  probe {}".format(unit.address,loop+1))
             if  bmeValid & (1<<loop):
-                print(" Temperature: {:.2f}˚C".format(unit.read_long(2201+loop*6,4,signed=True,number_of_registers=2)/100.0))
-                print(" Humidity   : {:.2f}%".format(unit.read_long(2203+loop*6,4,signed=True,number_of_registers=2)/1024.0))
-                print(" Pressure   : {:.2f}hPa".format(unit.read_long(2205+loop*6,4,signed=True,number_of_registers=2)/100.0))
+                print(" Temperature: {:8.2f}˚C".format(unit.read_long(2201+loop*6,4,signed=True,number_of_registers=2)/100.0))
+                print(" Humidity   : {:8.2f}%".format(unit.read_long(2203+loop*6,4,signed=False,number_of_registers=2)/1024.0))
+                print(" Pressure   : {:8.2f}hPa".format(unit.read_long(2205+loop*6,4,signed=False,number_of_registers=2)/100.0))
             else:
                 print("Sensor Error")
             print()
