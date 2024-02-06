@@ -3,9 +3,12 @@ import minimalmodbus
 unit1 = minimalmodbus.Instrument('/dev/ttyUSB0',1)
 unit1.serial.baudrate=115200
 
+#unit2 = minimalmodbus.Instrument('/dev/ttyUSB0',2)
+#unit2.serial.baudrate=115200
 
+
+#units = [unit1,unit2]
 units = [unit1]
-
 
 while True:
     # check if sensors are valid

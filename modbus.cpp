@@ -62,25 +62,33 @@ uint16_t ModbusManager::mb_calc_crc16(const uint8_t* buf, uint8_t len)
 
 mb_state_t ModbusManager::mb_check_buf()
 {
-  if (mb_request_buf_pos > 4) {
-    if (mb_request_buf[0] != mb_slave_address || mb_slave_address == 0) {
-      return MB_INVALID_SLAVE_ADDRESS;
-    }
+  mb_state_t  t_state=MB_DATA_INCOMPLETE;
 
-    if (mb_request_buf[1] >= 0x01 && mb_request_buf[1] <= 0x06) {
-      if (mb_request_buf_pos == 8) {
-        return MB_DATA_READY;
-      }
-    } else if (mb_request_buf[1] == 0x10 || mb_request_buf[1] == 0x0F) {
-      if (mb_request_buf_pos == mb_request_buf[6] + 9) {
-        return MB_DATA_READY;
-      }
-    } else {
-      return MB_INVALID_FUNCTION;
+  if (mb_request_buf_pos > 4)
+  {
+    if (mb_request_buf[1] >= 0x01 && mb_request_buf[1] <= 0x06)
+     {
+      if (mb_request_buf_pos == 8)
+       {
+        t_state=MB_DATA_READY;
+       }
+     }
+    else if (mb_request_buf[1] == 0x10 || mb_request_buf[1] == 0x0F)
+     {
+      if (mb_request_buf_pos == mb_request_buf[6] + 9)
+       {
+        t_state=MB_DATA_READY;
+       }
+     }
+    else t_state= MB_INVALID_FUNCTION;
+
+    if(t_state!= MB_DATA_INCOMPLETE)
+    {
+      if (mb_request_buf[0] != mb_slave_address || mb_slave_address == 0) 
+        t_state=MB_INVALID_SLAVE_ADDRESS;
     }
   }
-
-  return MB_DATA_INCOMPLETE;
+  return t_state;
 }
 
 

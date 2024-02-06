@@ -17,6 +17,9 @@
 #define MB_STOP_BITS     1
 #define MB_PARITY        UART_PARITY_NONE
 
+// MB_TIMEOUT is related to baud rate
+// please change it in modbus.hpp
+
 #define MB_UART_NUMBER   0
 #define MB_TX_PIN        0
 #define MB_RX_PIN        1
