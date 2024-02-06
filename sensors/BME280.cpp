@@ -58,11 +58,18 @@ void BME280::clearCalibrationData(void)
   _dig_H6 = 0;
 }
 
+void BME280::setAddress(uint8_t i2cAddress)
+{
+  _i2c_address = i2cAddress;
+}
+
 
 uint8_t BME280::begin(uint8_t i2cAddress)
 {
   _i2c_address = i2cAddress;
-  if (readId()==BME280_ID)
+  uint8_t ID = readId();
+  if ((ID ==BME280_ID) || (ID == BME280_ID2))
+//  if (ID ==BME280_ID)
   {
     clearCalibrationData();
     readCalibrationData();

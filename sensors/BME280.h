@@ -109,6 +109,7 @@
 
 // Value of ID register.
 #define BME280_ID  (0x60)
+#define BME280_ID2  (0x58)
 
 // Values for t_sb field of CONFIG register
 #define BME280_STANDBY_500_US  (0)
@@ -168,6 +169,7 @@ public:
   void writeConfigRegister(uint8_t t_sb, uint8_t filter, uint8_t spi);
 
   void reset(void);
+  void setAddress(uint8_t i2cAddress=0);
 
 private:
   uint8_t _i2c_address;

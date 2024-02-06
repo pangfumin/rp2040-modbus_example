@@ -60,7 +60,9 @@ void modbus_process_on_core_1()
         {
           modbus.bme280Sensors[loop]= modbus._t_bme280Sensors[loop];
         }
-        modbus.bme280Valid = modbus._t_bme280Valid;
+        for(loop=0;loop<modbus.BME280_MAX;loop++)
+        modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
+
       multicore_fifo_pop_blocking();
      }
     modbus.mb_process();
@@ -120,8 +122,13 @@ int main(void)
   gpio_pull_up(sda_pin);
   gpio_pull_up(scl_pin);
   BME280 bme280[2]= { BME280(), BME280()};
+  //bme280[0].setAddress(0x76);
+  //bme280[0].reset();
+  //bme280[1].setAddress(0x77);
+  //bme280[1].reset();
+
   bme280[0].begin(0x76);
-  bme280[1].begin(0x77);
+
   bme280[0].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
   bme280[0].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
   bme280[1].begin(0x77);
@@ -157,15 +164,15 @@ int main(void)
         for(loop=0;loop<modbus.dsSensorCount;loop++)
            modbus._t_dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
 
-       modbus._t_bme280Valid=0;
 
        for(loop=0;loop<modbus.BME280_MAX;loop++)
         {
-         // ok check if we see the sensor on i2c
-         if(bme280[loop].readId() == BME280_ID)
-          {
+         modbus._t_bme280_ID[loop]=bme280[loop].readId();
+
+         if((modbus._t_bme280_ID[loop] == BME280_ID) ||
+            (modbus._t_bme280_ID[loop] == BME280_ID2))
+           {
                // ok found sensor
-            modbus._t_bme280Valid |= 1<<loop;
             bme280[loop].read();
             int32_t temp;
             uint32_t hum;
@@ -176,8 +183,16 @@ int main(void)
 
             modbus._t_bme280Sensors[loop*6]= temp>>16;
             modbus._t_bme280Sensors[loop*6+1]= temp&0xffff;
-            modbus._t_bme280Sensors[loop*6+2]= hum>>16;
-            modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
+            if(modbus._t_bme280_ID[loop] == BME280_ID)
+            {
+              modbus._t_bme280Sensors[loop*6+2]= hum>>16;
+              modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
+            }
+            else
+            {
+              modbus._t_bme280Sensors[loop*6+2]=  0;
+              modbus._t_bme280Sensors[loop*6+3]=  0;
+            }
             modbus._t_bme280Sensors[loop*6+4]= pres>>16;
             modbus._t_bme280Sensors[loop*6+5]= pres&0xffff;
          }

@@ -28,13 +28,13 @@ public:
     int16_t bme280Sensors[BME280_MAX*2*3];
     uint16_t bme280Valid;
     int16_t dsSensors[DS18B20_MAX];
+    uint16_t bme280_ID[BME280_MAX];
 
     // _t means temporary
     //  to sync whit second core
     int16_t _t_dsSensors[DS18B20_MAX];
     int16_t _t_bme280Sensors[BME280_MAX*2*3];
-    uint16_t _t_bme280Valid;  // bit 0 sensor1,bit 1 sensor2, etc  0=invalid  1=valid
-
+    uint16_t _t_bme280_ID[BME280_MAX];
     int16_t dsSensorsAddress[DS18B20_MAX * 4];
     // holdin register add on
     // unique board ID register0 is bit 0..15 register3 is bit 48..64
@@ -47,8 +47,9 @@ public:
     static const uint16_t MB_COMMAND_DS18B20_REGISTER_COUNT=2000;
     static const uint16_t MB_COMMAND_DS18B20_REGISTER=2001; // up to 2016
     static const uint16_t MB_COMMAND_DS18B20_REGISTER_ADDRESS=2020; // up to 2016
-    static const uint16_t MB_COMMAND_MB280_VALID_REGISTER=2200; //
-    static const uint16_t MB_COMMAND_MB280_REGISTER=2201; //
+    static const uint16_t MB_COMMAND_MB280_ID_REGISTER=2200; //
+    static const uint16_t MB_COMMAND_MB280_1_REGISTER=2210; //
+    static const uint16_t MB_COMMAND_MB280_2_REGISTER=2220; //
 
     // ADC
     static const uint16_t MB_COMMAND_ADC_REGISTER=2100;  //up to 2104

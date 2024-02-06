@@ -97,18 +97,27 @@ uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
 
       }
 
-      if(address ==MB_COMMAND_MB280_VALID_REGISTER)
+      if((address >=MB_COMMAND_MB280_1_REGISTER) &&
+         (address < (MB_COMMAND_MB280_1_REGISTER+6)))
       {
-          *reg = bme280Valid;
+          *reg = bme280Sensors[address - MB_COMMAND_MB280_1_REGISTER];
            return MB_NO_ERROR;
       }
 
-      if((address >=MB_COMMAND_MB280_REGISTER)&&
-         (address < MB_COMMAND_MB280_REGISTER+(BME280_MAX*3*2)))
-         {
-          *reg = bme280Sensors[address - MB_COMMAND_MB280_REGISTER];
+      if((address >=MB_COMMAND_MB280_2_REGISTER) &&
+         (address < (MB_COMMAND_MB280_2_REGISTER+6)))
+      {
+          *reg = bme280Sensors[6 + address - MB_COMMAND_MB280_2_REGISTER];
            return MB_NO_ERROR;
-         }
+      }
+
+      if((address ==MB_COMMAND_MB280_ID_REGISTER)||
+         (address ==(MB_COMMAND_MB280_ID_REGISTER+1)))
+      {
+          *reg = bme280_ID[address - MB_COMMAND_MB280_ID_REGISTER];
+           return MB_NO_ERROR;
+      }
+
 
      return MB_ERROR_ILLEGAL_DATA_ADDRESS;
 }
