@@ -14,6 +14,8 @@ uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN,3,4,5,6,7,8,9};
 uint8_t ModbusPico::Inputs[INPUTS_MAX]={14,15,16,17,18,19,20,21};
 uint8_t ModbusPico::Adc[ADC_MAX]={26,27,28,29,255};
 
+const char *  ModbusPico::InstrumentIdString="Pico Modbus MBE280 Version 3.0\0\0\0\0";
+
 void ModbusPico::printResponse(int v)
 {
   int loop;
@@ -27,8 +29,36 @@ void ModbusPico::printResponse(int v)
 }
 
 
+
+
+uint8_t ModbusPico::mb_read_holding_registers(uint16_t start, uint16_t count)
+{
+  uint16_t val;
+  for (int i = 0; i < count; i++)
+  {
+    if (mb_read_holding_register(start + i, &val) == MB_NO_ERROR)
+      mb_response_add(val);
+    else
+      return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+  }
+  return MB_NO_ERROR;
+}
+
+
+
+
+
 uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 {
+     uint16_t * pt16;
+
+    if((addr>= MB_COMMAND_UNIT_TYPE_ID_STRING_REGISTER) &&
+       (addr <(MB_COMMAND_UNIT_TYPE_ID_STRING_REGISTER+16)))
+     {
+             pt16 = (uint16_t *) ModbusPico::InstrumentIdString;
+             *reg = pt16[addr-MB_COMMAND_UNIT_TYPE_ID_STRING_REGISTER];
+             return MB_NO_ERROR;
+     }
 
     switch(addr)
      {
@@ -38,8 +68,14 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
         case MB_COMMAND_UNIQUE_ID_REGISTER3:
              *reg = UniqueID[addr-MB_COMMAND_UNIQUE_ID_REGISTER0];
              return MB_NO_ERROR;
+        case MB_COMMAND_UNIT_TYPE_ID_REGISTER:
+             *reg = UNIT_TYPE;
+             return MB_NO_ERROR;
+        case MB_COMMAND_UNIT_VERSION_ID_REGISTER:
+             *reg = SOFTWARE_VERSION;
+             return MB_NO_ERROR;
      }
-    return ModbusManager::mb_read_holding_register(addr,reg);
+     return ModbusManager::mb_read_holding_register(addr,reg);
 }
 
 

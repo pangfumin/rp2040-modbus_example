@@ -13,7 +13,7 @@ typedef enum { MB_DATA_READY, MB_DATA_INCOMPLETE, MB_INVALID_SLAVE_ADDRESS, MB_I
 //#define MB_RX_BUF_SIZE 64
 //#define MB_TX_BUF_SIZE 64
 
-#define MB_TIMEOUT       3
+#define MB_TIMEOUT       4
 
 class ModbusManager
 {

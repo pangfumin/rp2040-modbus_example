@@ -318,14 +318,14 @@ uint8_t ModbusManager::mb_write_single_register(uint16_t start, uint16_t value)
 
     mb_response_add_single_register(start);
     mb_response_add_single_register(value);
-    
+
     return MB_NO_ERROR;
 }
 
 
-uint8_t ModbusManager::mb_read_holding_register(uint16_t addr, uint16_t* reg) 
+uint8_t ModbusManager::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 {
-    switch (addr) 
+    switch (addr)
     {
     case MB_STATE_REGISTER:
         *reg = state;
@@ -366,11 +366,11 @@ uint8_t ModbusManager::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 uint8_t ModbusManager::mb_read_holding_registers(uint16_t start, uint16_t count) 
 {
   uint16_t val;
-  for (int i = 0; i < count; i++) 
+  for (int i = 0; i < count; i++)
   {
     if (mb_read_holding_register(start + i, &val) == MB_NO_ERROR) 
       mb_response_add(val);
-    else 
+    else
       return MB_ERROR_ILLEGAL_DATA_ADDRESS;
   }
   return MB_NO_ERROR;

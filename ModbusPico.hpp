@@ -6,6 +6,8 @@
 class ModbusPico : public ModbusManager
 {
 public:
+    static const uint16_t UNIT_TYPE=2280;
+    static const uint16_t SOFTWARE_VERSION=0x0300;
     static bool debug;
     static const int COILS_MAX=8;
     static const int INPUTS_MAX=8;
@@ -43,6 +45,13 @@ public:
     static const uint16_t MB_COMMAND_UNIQUE_ID_REGISTER2=202;
     static const uint16_t MB_COMMAND_UNIQUE_ID_REGISTER3=203;
 
+    static const uint16_t MB_COMMAND_UNIT_TYPE_ID_REGISTER=204;
+    static const uint16_t MB_COMMAND_UNIT_VERSION_ID_REGISTER=205;
+
+    static const uint16_t MB_COMMAND_UNIT_TYPE_ID_STRING_REGISTER=300;
+    static const char * InstrumentIdString;
+
+
     // DS18B20 sensor register
     static const uint16_t MB_COMMAND_DS18B20_REGISTER_COUNT=2000;
     static const uint16_t MB_COMMAND_DS18B20_REGISTER=2001; // up to 2016
@@ -67,6 +76,7 @@ protected:
     uint8_t mb_read_coil_status(uint16_t start, uint16_t count);
     uint8_t mb_read_input_status(uint16_t start, uint16_t count);
     uint8_t mb_read_holding_register(uint16_t addr, uint16_t* reg);
+    uint8_t mb_read_holding_registers(uint16_t start, uint16_t count);
     uint8_t mb_read_input_registers(uint16_t start, uint16_t count);
     uint8_t mb_validate_input_register(uint16_t address, uint16_t * reg);
 };
