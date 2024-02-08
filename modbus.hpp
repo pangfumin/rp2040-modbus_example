@@ -13,8 +13,10 @@ typedef enum { MB_DATA_READY, MB_DATA_INCOMPLETE, MB_INVALID_SLAVE_ADDRESS, MB_I
 //#define MB_RX_BUF_SIZE 64
 //#define MB_TX_BUF_SIZE 64
 
-#define MB_TIMEOUT       4
+//#define MB_TIMEOUT       3
 
+// at 115200 baud 3.5 character is  304 us
+#define MB_TIMEOUT_US 350
 class ModbusManager
 {
 public:
@@ -94,10 +96,11 @@ protected:
     uint8_t mb_request_buf[MB_RX_BUF_SIZE];
     uint8_t mb_response_buf[MB_TX_BUF_SIZE];
 
+    int mb_last_request_buf_pos = 0;
     int mb_request_buf_pos = 0;
     int mb_response_buf_pos = 0;
 
-    uint32_t mb_timeout;
+    uint64_t mb_timeout;
 
     virtual uint8_t mb_read_coil_status(uint16_t start, uint16_t count);
     virtual uint8_t mb_read_input_status(uint16_t start, uint16_t count);

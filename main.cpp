@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////
 // Modbus parameters
-#define MB_SLAVE_ADDRESS 1
+#define MB_SLAVE_ADDRESS 2
 #define MB_BAUDRATE      115200
 #define MB_DATA_BITS     8
 #define MB_STOP_BITS     1

@@ -64,6 +64,26 @@ mb_state_t ModbusManager::mb_check_buf()
 {
   mb_state_t  t_state=MB_DATA_INCOMPLETE;
 
+ if(mb_last_request_buf_pos != mb_request_buf_pos)
+ {
+    // ok got something new
+    mb_timeout= time_us_64();
+    mb_last_request_buf_pos= mb_request_buf_pos;
+ }
+ else
+ {
+  // are we still empty
+   if(mb_last_request_buf_pos!=0)
+   {
+    //do we have a timeout
+        if (( time_us_64() - mb_timeout) > MB_TIMEOUT_US)
+         {
+           mb_reset_buf();
+           return t_state;
+         }
+   }
+ }
+
   if (mb_request_buf_pos > 4)
   {
     if (mb_request_buf[1] >= 0x01 && mb_request_buf[1] <= 0x06)
@@ -95,6 +115,7 @@ mb_state_t ModbusManager::mb_check_buf()
  void ModbusManager::mb_reset_buf()
 {
   mb_request_buf_pos = 0;
+  mb_last_request_buf_pos=0;
   memset(mb_request_buf, 0, sizeof(mb_request_buf));
 }
 
@@ -254,17 +275,17 @@ void ModbusManager::mb_init(uint8_t slave_address, uint8_t uart_num,
   }
 
   mb_reset_buf();
+
 }
 
 void ModbusManager::mb_rx(uint8_t data) 
 {
-  if (mb_get_tick_ms() - mb_timeout > MB_TIMEOUT) 
-    mb_reset_buf();
-
-  mb_timeout = mb_get_tick_ms();
-
+  // do we have data
   if (mb_request_buf_pos < (sizeof(mb_request_buf) - 1)) 
-    mb_request_buf[mb_request_buf_pos++] = data;
+   {
+      mb_request_buf[mb_request_buf_pos++] = data;
+      mb_timeout = time_us_64();
+   }
 }
 
 

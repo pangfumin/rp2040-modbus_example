@@ -32,9 +32,9 @@ sensorID = { 0x58 : 'BMP280' , 0x60 : 'BME280'}
 #address 2210..2225   sensor1 temp,humidity,pressure
 
 
+units = [unit1,unit2]
+#units = [unit1]
 
-#units = [unit1,unit2]
-units = [unit2, unit1]
 
 while True:
     # check if sensors are valid
@@ -65,6 +65,7 @@ while True:
             else:
                 print("  Sensor Error")
             print()
+#            time.sleep(0.1)
     print()
-    time.sleep(10)
+    time.sleep(3)
 
