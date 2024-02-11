@@ -36,3 +36,6 @@
 
 # git mess
 .gitatribute
+
+#sensor log
+/sensor_log

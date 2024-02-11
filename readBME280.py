@@ -19,6 +19,8 @@ def reg2string(my_list):
 
 unit1 = minimalmodbus.Instrument('/dev/ttyUSB0',1)
 unit1.serial.baudrate=115200
+unit1.serial.flush()
+time.sleep(0.1)
 
 unit2 = minimalmodbus.Instrument('/dev/ttyUSB0',2)
 unit2.serial.baudrate=115200
@@ -40,32 +42,36 @@ while True:
     # check if sensors are valid
     for unit in units:
         print("\nNode ",unit.address)
-        print("\n Pico Unique ID:",hex(unit.read_register(200,0,3)),end="")
-        print(hex(unit.read_register(201,0,3))[2:],end="")
-        print(hex(unit.read_register(202,0,3))[2:],end="")
-        print(hex(unit.read_register(203,0,3))[2:])
-        print(" Unit Type Id :", unit.read_register(204,0,3))
-        print(" Unit Type String:", reg2string(unit.read_registers(300,16,3)))
-        V = unit.read_register(205,0,3)
-        print(" Version: {}.{:02d}".format(V>>8,V&255))
+        try:
+            print("\n Pico Unique ID:",hex(unit.read_register(200,0,3)),end="")
+            print(hex(unit.read_register(201,0,3))[2:],end="")
+            print(hex(unit.read_register(202,0,3))[2:],end="")
+            print(hex(unit.read_register(203,0,3))[2:])
+            print(" Unit Type Id :", unit.read_register(204,0,3))
+            print(" Unit Type String:", reg2string(unit.read_registers(300,16,3)))
+            V = unit.read_register(205,0,3)
+            print(" Version: {}.{:02d}".format(V>>8,V&255))
 
-        for loop in range(2):
-            print("\n  sensor{}".format(loop+1))
+            for loop in range(2):
+                print("\n  sensor{}".format(loop+1))
 
-            ID=unit.read_register(2200+loop,0,4)
-            try:
-                print("  Sensor ID : ", sensorID[ID])
-            except KeyError:
-                pass
-            if (ID == 0x58) or (ID==0x60):
-                print("  Temperature: {:8.2f}˚C".format(unit.read_long(2210+loop*10,4,signed=True,number_of_registers=2)/100.0))
-                if ID == 0x60:
-                    print("  Humidity   : {:8.2f}%".format(unit.read_long(2212+loop*10,4,signed=False,number_of_registers=2)/1024.0))
-                print("  Pressure   : {:8.2f}hPa".format(unit.read_long(2214+loop*10,4,signed=False,number_of_registers=2)/100.0))
-            else:
-                print("  Sensor Error")
-            print()
-#            time.sleep(0.1)
+                ID=unit.read_register(2200+loop,0,4)
+                try:
+                    print("  Sensor ID : ", sensorID[ID])
+                except KeyError:
+                    pass
+                if (ID == 0x58) or (ID==0x60):
+                    print("  Temperature: {:8.2f}˚C".format(unit.read_long(2210+loop*10,4,signed=True,number_of_registers=2)/100.0))
+                    if ID == 0x60:
+                        print("  Humidity   : {:8.2f}%".format(unit.read_long(2212+loop*10,4,signed=False,number_of_registers=2)/1024.0))
+                    print("  Pressure   : {:8.2f}hPa".format(unit.read_long(2214+loop*10,4,signed=False,number_of_registers=2)/100.0))
+                else:
+                    print("  Sensor Error")
+                print()
+        except Exception as error:
+            print("Unable to read Modbus Node ",unit.address)
+            time.sleep(0.1)
+            unit.serial.flush()
     print()
     time.sleep(3)
 
