@@ -7,7 +7,8 @@ This way I just need to modify ModbusPico class to add function.<br>
 
 On the current example the modbus layout has 8 outputs, 8 inputs, one wire DS18B20 line and analog ADC inputs.<br>
 
-<img src="PicoModbusLayout.jpg" height=480>
+<img src="picoModbusLayout.png" height=480>
+<img src="RegisterMap.png">
 
 
 ## Update 6Feb 2024
