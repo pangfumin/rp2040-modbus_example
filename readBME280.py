@@ -17,10 +17,10 @@ def reg2string(my_list):
 
 
 
-unit1 = minimalmodbus.Instrument('/dev/ttyUSB0',1)
-unit1.serial.baudrate=115200
-unit1.serial.flush()
-time.sleep(0.1)
+# unit1 = minimalmodbus.Instrument('/dev/ttyUSB0',1)
+# unit1.serial.baudrate=115200
+# unit1.serial.flush()
+# time.sleep(0.1)
 
 unit2 = minimalmodbus.Instrument('/dev/ttyUSB0',2)
 unit2.serial.baudrate=115200
@@ -34,8 +34,8 @@ sensorID = { 0x58 : 'BMP280' , 0x60 : 'BME280'}
 #address 2210..2225   sensor1 temp,humidity,pressure
 
 
-units = [unit1,unit2]
-#units = [unit1]
+# units = [unit1,unit2]
+units = [unit2]
 
 led_state = 0
 
@@ -99,5 +99,5 @@ while True:
             time.sleep(0.1)
             unit.serial.flush()
     print()
-    time.sleep(0.1)
+    # time.sleep(0.1)
 
