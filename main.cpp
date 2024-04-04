@@ -50,20 +50,23 @@ void modbus_process_on_core_1()
   while(true)
   {
    // do we have to update sensors
-   if(multicore_fifo_rvalid())
+   //if(multicore_fifo_rvalid())
      {
-       for(loop=0;loop<modbus.dsSensorCount;loop++)
-         {
-           modbus.dsSensors[loop] = modbus._t_dsSensors[loop];
-         }
-       for(loop=0;loop<(modbus.BME280_MAX*2*3);loop++) // number of sensors 3 values of 32 bits to 16 bits register.
-        {
-          modbus.bme280Sensors[loop]= modbus._t_bme280Sensors[loop];
+      //  for(loop=0;loop<modbus.dsSensorCount;loop++)
+      //    {
+      //      modbus.dsSensors[loop] = modbus._t_dsSensors[loop];
+      //    }
+      //  for(loop=0;loop<(modbus.BME280_MAX*2*3);loop++) // number of sensors 3 values of 32 bits to 16 bits register.
+      //   {
+      //     modbus.bme280Sensors[loop]= modbus._t_bme280Sensors[loop];
+      //   }
+        for(loop=0;loop<modbus.BME280_MAX;loop++) {
+          // modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
+          modbus.bme280_ID[loop] = (loop == 0? BME280_ID : BME280_ID2);
         }
-        for(loop=0;loop<modbus.BME280_MAX;loop++)
-        modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
+          
 
-      multicore_fifo_pop_blocking();
+      //multicore_fifo_pop_blocking();
      }
     modbus.mb_process();
 
@@ -153,62 +156,62 @@ int main(void)
   while(true)
   {
 //    printf("core 0 in sleep...");
-    if(ds_sensor.count==0)
-     {
-       UpdateDS18B20Sensor();
-     }
-    else
-    {
-      if(!sensorFirstTime)
-       {
-        for(loop=0;loop<modbus.dsSensorCount;loop++)
-           modbus._t_dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
+    // if(ds_sensor.count==0)
+    //  {
+    //    UpdateDS18B20Sensor();
+    //  }
+    // else
+    // {
+    //   if(!sensorFirstTime)
+    //    {
+    //     for(loop=0;loop<modbus.dsSensorCount;loop++)
+    //        modbus._t_dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
 
 
-       for(loop=0;loop<modbus.BME280_MAX;loop++)
-        {
-         modbus._t_bme280_ID[loop]=bme280[loop].readId();
+    //    for(loop=0;loop<modbus.BME280_MAX;loop++)
+    //     {
+    //      modbus._t_bme280_ID[loop]=bme280[loop].readId();
 
-         if((modbus._t_bme280_ID[loop] == BME280_ID) ||
-            (modbus._t_bme280_ID[loop] == BME280_ID2))
-           {
-               // ok found sensor
-            bme280[loop].read();
-            int32_t temp;
-            uint32_t hum;
-            uint32_t pres;
-            temp = bme280[loop].temperature();
-            hum = bme280[loop].humidity();
-            pres = bme280[loop].pressure();
+    //      if((modbus._t_bme280_ID[loop] == BME280_ID) ||
+    //         (modbus._t_bme280_ID[loop] == BME280_ID2))
+    //        {
+    //            // ok found sensor
+    //         bme280[loop].read();
+    //         int32_t temp;
+    //         uint32_t hum;
+    //         uint32_t pres;
+    //         temp = bme280[loop].temperature();
+    //         hum = bme280[loop].humidity();
+    //         pres = bme280[loop].pressure();
 
-            modbus._t_bme280Sensors[loop*6]= temp>>16;
-            modbus._t_bme280Sensors[loop*6+1]= temp&0xffff;
-            if(modbus._t_bme280_ID[loop] == BME280_ID)
-            {
-              modbus._t_bme280Sensors[loop*6+2]= hum>>16;
-              modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
-            }
-            else
-            {
-              modbus._t_bme280Sensors[loop*6+2]=  0;
-              modbus._t_bme280Sensors[loop*6+3]=  0;
-            }
-            modbus._t_bme280Sensors[loop*6+4]= pres>>16;
-            modbus._t_bme280Sensors[loop*6+5]= pres&0xffff;
-         }
-         else
-         {
-            for(int loop2=0;loop2<6;loop2++)
-                modbus._t_bme280Sensors[loop*6+loop2]= 0;
-         }
+    //         modbus._t_bme280Sensors[loop*6]= temp>>16;
+    //         modbus._t_bme280Sensors[loop*6+1]= temp&0xffff;
+    //         if(modbus._t_bme280_ID[loop] == BME280_ID)
+    //         {
+    //           modbus._t_bme280Sensors[loop*6+2]= hum>>16;
+    //           modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
+    //         }
+    //         else
+    //         {
+    //           modbus._t_bme280Sensors[loop*6+2]=  0;
+    //           modbus._t_bme280Sensors[loop*6+3]=  0;
+    //         }
+    //         modbus._t_bme280Sensors[loop*6+4]= pres>>16;
+    //         modbus._t_bme280Sensors[loop*6+5]= pres&0xffff;
+    //      }
+    //      else
+    //      {
+    //         for(int loop2=0;loop2<6;loop2++)
+    //             modbus._t_bme280Sensors[loop*6+loop2]= 0;
+    //      }
 
-        }
-         // send flag to second core to update
-        multicore_fifo_push_blocking(1);
-      }
-        ds_sensor.startConversion();
-        sensorFirstTime=0;
-    }
+    //     }
+    //      // send flag to second core to update
+    //     multicore_fifo_push_blocking(1);
+    //   }
+    //     ds_sensor.startConversion();
+    //     sensorFirstTime=0;
+    // }
       sleep_ms(5000);
   }
 }

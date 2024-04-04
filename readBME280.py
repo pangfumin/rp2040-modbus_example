@@ -52,6 +52,13 @@ while True:
             V = unit.read_register(205,0,3)
             print(" Version: {}.{:02d}".format(V>>8,V&255))
 
+            sensor_0_data = unit.read_register(1000,0,3)
+            print ("  sensor_0 : ", sensor_0_data)
+            sensor_1_data = unit.read_register(1001,0,3)
+            print ("  sensor_1 : ", sensor_1_data)
+            sensor_2_data = unit.read_register(1002,0,3)
+            print ("  sensor_2 : ", sensor_2_data)
+
             for loop in range(2):
                 print("\n  sensor{}".format(loop+1))
 
