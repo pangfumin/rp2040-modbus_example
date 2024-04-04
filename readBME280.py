@@ -89,5 +89,5 @@ while True:
             time.sleep(0.1)
             unit.serial.flush()
     print()
-    time.sleep(3)
+    time.sleep(1)
 
