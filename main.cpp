@@ -79,28 +79,28 @@ void modbus_process_on_core_1()
 }
 
 
-void UpdateDS18B20Sensor()
-{
-        ds_sensor.scanSensors();
+// void UpdateDS18B20Sensor()
+// {
+//         ds_sensor.scanSensors();
 
-           modbus.dsSensorCount=modbus.DS18B20_MAX;
-        if(ds_sensor.count > modbus.DS18B20_MAX)
-           modbus.dsSensorCount = modbus.DS18B20_MAX;
-        else
-           modbus.dsSensorCount = ds_sensor.count;
+//            modbus.dsSensorCount=modbus.DS18B20_MAX;
+//         if(ds_sensor.count > modbus.DS18B20_MAX)
+//            modbus.dsSensorCount = modbus.DS18B20_MAX;
+//         else
+//            modbus.dsSensorCount = ds_sensor.count;
 
-        if(modbus.dsSensorCount>0)
-        {
-          // fill sensor address
-          for(int loop=0;loop<modbus.dsSensorCount;loop++)
-             for(int reg16=0;reg16<4;reg16++)
-              {
-                  modbus.dsSensorsAddress[loop*4 + reg16]= (uint16_t) ds_sensor.sensorAddress[loop].rom[reg16*2]<<8 |
-							   (uint16_t) (ds_sensor.sensorAddress[loop].rom[reg16*2+1]);
-              }
-        }
+//         if(modbus.dsSensorCount>0)
+//         {
+//           // fill sensor address
+//           for(int loop=0;loop<modbus.dsSensorCount;loop++)
+//              for(int reg16=0;reg16<4;reg16++)
+//               {
+//                   modbus.dsSensorsAddress[loop*4 + reg16]= (uint16_t) ds_sensor.sensorAddress[loop].rom[reg16*2]<<8 |
+// 							   (uint16_t) (ds_sensor.sensorAddress[loop].rom[reg16*2+1]);
+//               }
+//         }
 
-}
+// }
 
 
 
@@ -112,31 +112,29 @@ int main(void)
   uint8_t sensorFirstTime=1;
 
   // put a delay to enable USB serial
-    sleep_ms(3000);
-
-
+  sleep_ms(1000);
 
   printf("Modbus demo firmware start\r\n");
 
-  //Initialize I2C port at 400 kHz
-  i2c_init(i2c, 400 * 1000);
-  gpio_set_function(sda_pin, GPIO_FUNC_I2C);
-  gpio_set_function(scl_pin, GPIO_FUNC_I2C);
-  gpio_pull_up(sda_pin);
-  gpio_pull_up(scl_pin);
-  BME280 bme280[2]= { BME280(), BME280()};
-  //bme280[0].setAddress(0x76);
-  //bme280[0].reset();
-  //bme280[1].setAddress(0x77);
-  //bme280[1].reset();
+  // //Initialize I2C port at 400 kHz
+  // i2c_init(i2c, 400 * 1000);
+  // gpio_set_function(sda_pin, GPIO_FUNC_I2C);
+  // gpio_set_function(scl_pin, GPIO_FUNC_I2C);
+  // gpio_pull_up(sda_pin);
+  // gpio_pull_up(scl_pin);
+  // BME280 bme280[2]= { BME280(), BME280()};
+  // //bme280[0].setAddress(0x76);
+  // //bme280[0].reset();
+  // //bme280[1].setAddress(0x77);
+  // //bme280[1].reset();
 
-  bme280[0].begin(0x76);
+  // bme280[0].begin(0x76);
 
-  bme280[0].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
-  bme280[0].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
-  bme280[1].begin(0x77);
-  bme280[1].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
-  bme280[1].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
+  // bme280[0].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
+  // bme280[0].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
+  // bme280[1].begin(0x77);
+  // bme280[1].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
+  // bme280[1].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
 
   modbus.mb_init(MB_SLAVE_ADDRESS,
                  MB_UART_NUMBER,
@@ -149,9 +147,9 @@ int main(void)
                  MB_DE_PIN);
 
   multicore_launch_core1(modbus_process_on_core_1);
-  UpdateDS18B20Sensor();
-  for(loop=0;loop<modbus.BME280_MAX;loop++)
-      bme280[loop].read();
+  // UpdateDS18B20Sensor();
+  // for(loop=0;loop<modbus.BME280_MAX;loop++)
+  //     bme280[loop].read();
 
   while(true)
   {

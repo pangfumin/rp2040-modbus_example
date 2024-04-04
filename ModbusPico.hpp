@@ -73,6 +73,7 @@ protected:
     void printResponse(int v);
     uint8_t mb_write_single_coil(uint16_t start, uint16_t value);
     uint8_t mb_write_multiple_coils(uint16_t start, uint8_t* values, uint16_t len);
+    uint8_t mb_write_single_register(uint16_t start, uint16_t value);
     uint8_t mb_read_coil_status(uint16_t start, uint16_t count);
     uint8_t mb_read_input_status(uint16_t start, uint16_t count);
     uint8_t mb_read_holding_register(uint16_t addr, uint16_t* reg);

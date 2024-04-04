@@ -37,6 +37,8 @@ sensorID = { 0x58 : 'BMP280' , 0x60 : 'BME280'}
 units = [unit1,unit2]
 #units = [unit1]
 
+led_state = 0
+
 
 while True:
     # check if sensors are valid
@@ -58,6 +60,13 @@ while True:
             print ("  sensor_1 : ", sensor_1_data)
             sensor_2_data = unit.read_register(1002,0,3)
             print ("  sensor_2 : ", sensor_2_data)
+
+
+            # write to register
+            led_state = not led_state
+            # unit.write_bit(0,led_state,5)
+
+            unit.write_register(110,led_state,0,6)
 
             for loop in range(2):
                 print("\n  sensor{}".format(loop+1))

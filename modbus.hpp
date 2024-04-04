@@ -111,8 +111,5 @@ protected:
     virtual uint8_t mb_write_multiple_coils(uint16_t start, uint8_t* values, uint16_t len);
     virtual uint8_t mb_write_multiple_registers(uint16_t start, uint16_t* values, uint16_t len);
     virtual uint8_t mb_read_holding_register(uint16_t addr, uint16_t* reg);
-
-
-
 };
 

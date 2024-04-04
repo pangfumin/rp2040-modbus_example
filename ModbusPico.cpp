@@ -262,6 +262,51 @@ uint8_t ModbusPico::mb_write_single_coil(uint16_t start, uint16_t value) {
   return MB_NO_ERROR;
 }
 
+uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
+  // if(debug)
+  //    printf("Write SingleCoil start:%u  gpio:%u value:%u\n\r",start,value,Coils[start]);
+  // if(start>= COILS_MAX)
+  //     return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+  
+  // gpio_put(Coils[start],value != 0 ? 1 : 0);
+  // mb_response_add_single_register(start);
+  // mb_response_buf_pos++;
+  // mb_response_add_single_register(value);
+
+    uint16_t val;
+    uint16_t addr = start;
+
+    switch (addr) 
+    {
+    case MB_COMMAND_REGISTER:
+        command = value;
+        break;
+
+    case MB_COMMAND_PARAM_0_REGISTER:
+        command_param[0] = value;
+        break;
+
+    case MB_COMMAND_PARAM_1_REGISTER:
+        command_param[1] = value;
+        break;
+
+    case MB_COMMAND_PARAM_2_REGISTER:
+        command_param[2] = value;
+        break;
+
+    default:
+        return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+    }
+
+    gpio_put(Coils[0],value != 0 ? 1 : 0);  // debug
+    mb_response_add_single_register(start);
+    mb_response_buf_pos++;
+    mb_response_add_single_register(value);
+
+
+  return MB_NO_ERROR;
+}
+
 uint8_t ModbusPico::mb_write_multiple_coils(uint16_t start, uint8_t* values, uint16_t len) {
   uint8_t mask=1;
   uint8_t value=0;
