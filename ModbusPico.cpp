@@ -63,6 +63,25 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 
     switch(addr)
      {
+        case MB_COMMAND_PANEL_SWITCH_0_INPUT_REGISTER:
+            *reg = (uint16_t)get_input(0x00);
+            return MB_NO_ERROR;
+        case MB_COMMAND_PANEL_SWITCH_1_INPUT_REGISTER:
+            *reg = (uint16_t)get_input(0x01);
+            return MB_NO_ERROR;
+        case MB_COMMAND_PANEL_SWITCH_2_INPUT_REGISTER:
+            *reg = (uint16_t)get_input(0x02);
+            return MB_NO_ERROR;
+        case MB_COMMAND_PANEL_SWITCH_3_INPUT_REGISTER:
+            *reg = (uint16_t)get_input(0x03);
+            return MB_NO_ERROR;
+        case MB_COMMAND_PANEL_SWITCH_4_INPUT_REGISTER:
+            *reg = (uint16_t)get_input(0x04);
+            return MB_NO_ERROR;
+        case MB_COMMAND_PANEL_SWITCH_5_INPUT_REGISTER:
+            *reg = (uint16_t)get_input(0x05);
+            return MB_NO_ERROR;
+             
         case MB_COMMAND_UNIQUE_ID_REGISTER0:
         case MB_COMMAND_UNIQUE_ID_REGISTER1:
         case MB_COMMAND_UNIQUE_ID_REGISTER2:
@@ -279,27 +298,52 @@ uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
 
     switch (addr) 
     {
-    case MB_COMMAND_REGISTER:
-        command = value;
-        break;
+      case MB_COMMAND_REGISTER:
+          command = value;
+          break;
 
-    case MB_COMMAND_PARAM_0_REGISTER:
-        command_param[0] = value;
-        break;
+      case MB_COMMAND_PARAM_0_REGISTER:
+          command_param[0] = value;
+          break;
 
-    case MB_COMMAND_PARAM_1_REGISTER:
-        command_param[1] = value;
-        break;
+      case MB_COMMAND_PARAM_1_REGISTER:
+          command_param[1] = value;
+          break;
 
-    case MB_COMMAND_PARAM_2_REGISTER:
-        command_param[2] = value;
-        break;
+      case MB_COMMAND_PARAM_2_REGISTER:
+          command_param[2] = value;
+          break;
+        
+      case MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER:
+          set_output(0x08, value & 0xFF);
+          break;
 
-    default:
-        return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+      case MB_COMMAND_PANEL_LED_1_OUTPUT_REGISTER:
+          set_output(0x09, value & 0xFF);
+          break;
+      case MB_COMMAND_PANEL_LED_2_OUTPUT_REGISTER:
+          set_output(0x0A, value & 0xFF);
+          break;
+      case MB_COMMAND_PANEL_LED_3_OUTPUT_REGISTER:
+          set_output(0x0B, value & 0xFF);
+          break;
+      case MB_COMMAND_PANEL_LED_4_OUTPUT_REGISTER:
+          set_output(0x0C, value & 0xFF);
+          break;  
+      case MB_COMMAND_PANEL_LED_5_OUTPUT_REGISTER:
+          set_output(0x0D, value & 0xFF);
+          break;
+      case MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER:
+          set_output(0x0E, value & 0xFF);
+          break;
+      case MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER:
+          set_output(0x0F, value & 0xFF);
+          break;
+
+      default:
+          return MB_ERROR_ILLEGAL_DATA_ADDRESS;
     }
-
-    gpio_put(Coils[0],value != 0 ? 1 : 0);  // debug
+    
     mb_response_add_single_register(start);
     mb_response_buf_pos++;
     mb_response_add_single_register(value);
@@ -370,6 +414,9 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
          gpio_init(Coils[loop]);
          gpio_set_dir(Coils[loop], GPIO_OUT);
       }
+
+    init_gpio();
+    clear_all();
 
     //  if(debug)
     //      printf("initialize inputs\n\r");

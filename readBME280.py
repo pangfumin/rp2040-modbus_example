@@ -39,6 +39,7 @@ units = [unit1,unit2]
 
 led_state = 0
 
+led_data = 0
 
 while True:
     # check if sensors are valid
@@ -64,30 +65,39 @@ while True:
 
             # write to register
             led_state = not led_state
-            # unit.write_bit(0,led_state,5)
+            unit.write_bit(0,led_state,5)
 
-            unit.write_register(110,led_state,0,6)
+            # write led register 07
+            if led_data == 0x100:
+                led_data = 0
+            unit.write_register(1115,led_data,0,6)
+            led_data = led_data + 1
 
-            for loop in range(2):
-                print("\n  sensor{}".format(loop+1))
+            panel_input_05 = unit.read_register(1105,0,3)
+            print("\n panel_input_05 {}".format(panel_input_05))
 
-                ID=unit.read_register(2200+loop,0,4)
-                try:
-                    print("  Sensor ID : ", sensorID[ID])
-                except KeyError:
-                    pass
-                if (ID == 0x58) or (ID==0x60):
-                    print("  Temperature: {:8.2f}˚C".format(unit.read_long(2210+loop*10,4,signed=True,number_of_registers=2)/100.0))
-                    if ID == 0x60:
-                        print("  Humidity   : {:8.2f}%".format(unit.read_long(2212+loop*10,4,signed=False,number_of_registers=2)/1024.0))
-                    print("  Pressure   : {:8.2f}hPa".format(unit.read_long(2214+loop*10,4,signed=False,number_of_registers=2)/100.0))
-                else:
-                    print("  Sensor Error")
-                print()
+            
+
+            # for loop in range(2):
+            #     print("\n  sensor{}".format(loop+1))
+
+            #     ID=unit.read_register(2200+loop,0,4)
+            #     try:
+            #         print("  Sensor ID : ", sensorID[ID])
+            #     except KeyError:
+            #         pass
+            #     if (ID == 0x58) or (ID==0x60):
+            #         print("  Temperature: {:8.2f}˚C".format(unit.read_long(2210+loop*10,4,signed=True,number_of_registers=2)/100.0))
+            #         if ID == 0x60:
+            #             print("  Humidity   : {:8.2f}%".format(unit.read_long(2212+loop*10,4,signed=False,number_of_registers=2)/1024.0))
+            #         print("  Pressure   : {:8.2f}hPa".format(unit.read_long(2214+loop*10,4,signed=False,number_of_registers=2)/100.0))
+            #     else:
+            #         print("  Sensor Error")
+            #     print()
         except Exception as error:
             print("Unable to read Modbus Node ",unit.address)
             time.sleep(0.1)
             unit.serial.flush()
     print()
-    time.sleep(1)
+    time.sleep(0.1)
 

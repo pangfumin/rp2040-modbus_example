@@ -1,6 +1,7 @@
  #pragma once
 
 #include "modbus.hpp"
+#include "panel_io.hpp"
 #include <vector>
 
 class ModbusPico : public ModbusManager
@@ -51,6 +52,25 @@ public:
     static const uint16_t MB_COMMAND_UNIT_TYPE_ID_STRING_REGISTER=300;
     static const char * InstrumentIdString;
 
+    // panel register
+    static const uint16_t MB_COMMAND_PANEL_SWITCH_0_INPUT_REGISTER=1100;
+    static const uint16_t MB_COMMAND_PANEL_SWITCH_1_INPUT_REGISTER=1101;
+    static const uint16_t MB_COMMAND_PANEL_SWITCH_2_INPUT_REGISTER=1102;
+    static const uint16_t MB_COMMAND_PANEL_SWITCH_3_INPUT_REGISTER=1103;
+    static const uint16_t MB_COMMAND_PANEL_SWITCH_4_INPUT_REGISTER=1104;
+    static const uint16_t MB_COMMAND_PANEL_SWITCH_5_INPUT_REGISTER=1105;
+
+    static const uint16_t MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER=1108;
+    static const uint16_t MB_COMMAND_PANEL_LED_1_OUTPUT_REGISTER=1109;
+    static const uint16_t MB_COMMAND_PANEL_LED_2_OUTPUT_REGISTER=1110;
+    static const uint16_t MB_COMMAND_PANEL_LED_3_OUTPUT_REGISTER=1111;
+    static const uint16_t MB_COMMAND_PANEL_LED_4_OUTPUT_REGISTER=1112;
+    static const uint16_t MB_COMMAND_PANEL_LED_5_OUTPUT_REGISTER=1113;
+    static const uint16_t MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER=1114;
+    static const uint16_t MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER=1115;
+
+
+
 
     // DS18B20 sensor register
     static const uint16_t MB_COMMAND_DS18B20_REGISTER_COUNT=2000;
@@ -59,6 +79,8 @@ public:
     static const uint16_t MB_COMMAND_MB280_ID_REGISTER=2200; //
     static const uint16_t MB_COMMAND_MB280_1_REGISTER=2210; //
     static const uint16_t MB_COMMAND_MB280_2_REGISTER=2220; //
+
+
 
     // ADC
     static const uint16_t MB_COMMAND_ADC_REGISTER=2100;  //up to 2104
