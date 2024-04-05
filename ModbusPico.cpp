@@ -11,6 +11,9 @@
 
 bool ModbusPico::debug=true;
 uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN};
+uint8_t ModbusPico::led_history_ringbuffer[8][32] = {0};
+uint8_t ModbusPico::led_history_ringbuffer_index[8] = {0};
+uint8_t ModbusPico::led_history_one_count[8][8] = {0};
 
 const char *  ModbusPico::InstrumentIdString="Pico Modbus MBE280 Version 3.0\0\0\0\0";
 
@@ -61,23 +64,16 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
     switch(addr)
      {
         case MB_COMMAND_PANEL_SWITCH_0_INPUT_REGISTER:
-            *reg = (uint16_t)get_input(0x00);
-            return MB_NO_ERROR;
         case MB_COMMAND_PANEL_SWITCH_1_INPUT_REGISTER:
-            *reg = (uint16_t)get_input(0x01);
-            return MB_NO_ERROR;
         case MB_COMMAND_PANEL_SWITCH_2_INPUT_REGISTER:
-            *reg = (uint16_t)get_input(0x02);
-            return MB_NO_ERROR;
         case MB_COMMAND_PANEL_SWITCH_3_INPUT_REGISTER:
-            *reg = (uint16_t)get_input(0x03);
-            return MB_NO_ERROR;
         case MB_COMMAND_PANEL_SWITCH_4_INPUT_REGISTER:
-            *reg = (uint16_t)get_input(0x04);
-            return MB_NO_ERROR;
         case MB_COMMAND_PANEL_SWITCH_5_INPUT_REGISTER:
-            *reg = (uint16_t)get_input(0x05);
-            return MB_NO_ERROR;
+        {
+          *reg = (uint16_t)get_input(addr - MB_COMMAND_PANEL_REGISTER_START);
+          return MB_NO_ERROR;
+        }
+           
              
         case MB_COMMAND_UNIQUE_ID_REGISTER0:
         case MB_COMMAND_UNIQUE_ID_REGISTER1:
@@ -94,9 +90,6 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
      }
      return ModbusManager::mb_read_holding_register(addr,reg);
 }
-
-
-
 
 uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
 {
@@ -187,30 +180,28 @@ uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
           break;
         
       case MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER:
-          set_output(0x08, value & 0xFF);
-          break;
-
       case MB_COMMAND_PANEL_LED_1_OUTPUT_REGISTER:
-          set_output(0x09, value & 0xFF);
-          break;
       case MB_COMMAND_PANEL_LED_2_OUTPUT_REGISTER:
-          set_output(0x0A, value & 0xFF);
-          break;
       case MB_COMMAND_PANEL_LED_3_OUTPUT_REGISTER:
-          set_output(0x0B, value & 0xFF);
-          break;
       case MB_COMMAND_PANEL_LED_4_OUTPUT_REGISTER:
-          set_output(0x0C, value & 0xFF);
-          break;  
       case MB_COMMAND_PANEL_LED_5_OUTPUT_REGISTER:
-          set_output(0x0D, value & 0xFF);
-          break;
       case MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER:
-          set_output(0x0E, value & 0xFF);
-          break;
       case MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER:
-          set_output(0x0F, value & 0xFF);
+      {
+          set_output(addr - MB_COMMAND_PANEL_REGISTER_START, value & 0xFF);
+          uint8_t next_index 
+            = led_history_ringbuffer_index[7] + 1 == 32 ? 
+              0 : led_history_ringbuffer_index[7] + 1;
+          uint8_t pop_data = led_history_ringbuffer[7][next_index];
+          uint8_t push_data = value & 0xFF;
+          led_history_ringbuffer[7][led_history_ringbuffer_index[7]] = push_data;
+          for (int i = 0; i < 8; i++) {
+            led_history_one_count[7][i] -= (pop_data >> i) & 0x01;
+            led_history_one_count[7][i] += (push_data >> i) & 0x01;
+          }
+          
           break;
+      }
 
       default:
           return MB_ERROR_ILLEGAL_DATA_ADDRESS;

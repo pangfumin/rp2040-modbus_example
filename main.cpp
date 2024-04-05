@@ -2,6 +2,8 @@
 #include <hardware/uart.h>
 #include <pico/stdlib.h>
 #include <stdio.h>
+#include <math.h> 
+
 #include "pico/multicore.h"
 #include "hardware/i2c.h"
 #include "ModbusPico.hpp"
@@ -23,6 +25,95 @@
 
 #define MB_DE_PIN        2
 
+auto_init_mutex(my_mutex);
+uint32_t owner_out;
+
+uint16_t data = 0;
+void trylock(int core){
+    uint32_t owner_out;
+    if (mutex_try_enter(&my_mutex,&owner_out)){
+        // printf("from core%d: in Mutex!!\n",core); 
+        sleep_ms(10);
+        mutex_exit(&my_mutex);
+        // printf("from core%d: Out Mutex!!\n",core); 
+
+        sleep_ms(10);
+    }
+    else{
+        // printf("from core%d: locked %d\n",core,owner_out);
+        sleep_ms(10);
+    }
+}
+
+
+static char brightness_phase_lookup[32][31] =
+{ //
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0 }, //  0/31 =  0%
+				{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0 }, //  1/31 =  3%
+				{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0 }, //  2/31 =  6%
+				{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+						0, 0, 0, 0 }, //  3/31 = 10%
+				{ 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+						0, 0, 0, 0 }, //  4/31 = 13%
+				{ 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+						0, 0, 0, 0 }, //  5/31 = 16%
+				{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+						0, 0, 0, 0 }, //  6/31 = 19%
+				{ 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
+						1, 0, 0, 0 }, //  7/31 = 23%
+				{ 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+						1, 0, 0, 0 }, //  8/31 = 26%
+				{ 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+						0, 1, 0, 0 }, //  9/31 = 29%
+				{ 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+						0, 1, 0, 0 }, // 10/31 = 32%
+				{ 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0,
+						0, 1, 0, 0 }, // 11/31 = 35%
+				{ 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1,
+						0, 1, 0, 0 }, // 12/31 = 39%
+				{ 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1,
+						0, 0, 1, 0 }, // 13/31 = 42%
+				{ 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+						1, 0, 1, 0 }, // 14/31 = 45%
+				{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+						1, 0, 1, 0 }, // 15/31 = 48%
+				{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+						1, 0, 1, 0 }, // 16/31 = 52%
+				{ 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+						1, 0, 1, 0 }, // 17/31 = 55%
+				{ 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
+						0, 1, 1, 0 }, // 18/31 = 58%
+				{ 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1,
+						0, 1, 1, 0 }, // 19/31 = 61%
+				{ 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1,
+						0, 1, 1, 0 }, // 20/31 = 65%
+				{ 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0,
+						1, 1, 0, 1 }, // 21/31 = 68%
+				{ 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0,
+						1, 1, 0, 1 }, // 22/31 = 71%
+				{ 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1,
+						1, 1, 0, 1 }, // 23/31 = 74%
+				{ 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1,
+						1, 1, 0, 1 }, // 24/31 = 77%
+				{ 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1,
+						1, 0, 1, 1 }, // 25/31 = 81%
+				{ 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+						1, 0, 1, 1 }, // 26/31 = 84%
+				{ 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+						0, 1, 1, 1 }, // 27/31 = 87%
+				{ 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+						1, 1, 1, 1 }, // 28/31 = 90%
+				{ 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
+						1, 1, 1, 1 }, // 29/31 = 94%
+				{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+						1, 1, 1, 1 }, // 30/31 = 97%
+				{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+						1, 1, 1, 1 } // 31/31 = 100%
+		};
+
 
 ModbusPico modbus;
 
@@ -40,33 +131,77 @@ void on_mb_rx()
     modbus.mb_rx(uart_getc(uart1));
 }
 
+
+
 void modbus_process_on_core_1()
 {
  int loop;
   while(true)
   {
    // do we have to update sensors
-   //if(multicore_fifo_rvalid())
-     {
-     
-        // for(loop=0;loop<modbus.BME280_MAX;loop++) {
-        //   // modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
-        //   modbus.bme280_ID[loop] = (loop == 0? BME280_ID : BME280_ID2);
-        // }
-          
+   
+   
 
-      //multicore_fifo_pop_blocking();
-     }
     modbus.mb_process();
 
-    uint16_t time_sec = (uint16_t) (time_us_64()/(1000*1000));
+    uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
 
-    modbus.sensor_0 = time_sec*10;
-    modbus.sensor_1 = time_sec*20;
-    modbus.sensor_2 = time_sec*30;
+    // if(multicore_fifo_rvalid())
+    // {
+    
+    //   // for(loop=0;loop<modbus.BME280_MAX;loop++) {
+    //   //   // modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
+    //   //   modbus.bme280_ID[loop] = (loop == 0? BME280_ID : BME280_ID2);
+    //   // }
+      
+        
+
+    //   uint32_t g = multicore_fifo_pop_blocking();
+    //   modbus.sensor_0 = g;
+    // }
+
+    if (mutex_try_enter(&my_mutex,&owner_out)){
+        // printf("from core%d: in Mutex!!\n",core); 
+        // sleep_ms(10);
+        modbus.sensor_0 = data;
+        mutex_exit(&my_mutex);
+        // printf("from core%d: Out Mutex!!\n",core); 
+
+        // sleep_ms(10);
+    }
+
+
+    // modbus.sensor_0 = time_sec;
+    modbus.sensor_1 = time_sec;
+    modbus.sensor_2 = time_sec;
+
+    // // char bright = 31 * sin()
+    // for (int i = 0; i < 360; i++) {
+    //    uint64_t bright =  31 * sin(i / 180.0 * 3.14159);
+
+    //    if (bright < 0)
+    //      bright = -bright;
+
+    //     // modbus.mb_process();
+
+    //     // uint16_t time_sec = (uint16_t) (time_us_64()/(1000*1000));
+
+    //     // modbus.sensor_0 = time_sec*10;
+    //     // modbus.sensor_1 = time_sec*20;
+    //     // modbus.sensor_2 = time_sec*30;
+
+    //     // modbus.sensor_0 = bright;
+    //     for (int phase =0; phase < 31; phase++) {
+          
+    //       set_output(DEBUG_OUTPUT, brightness_phase_lookup[bright][phase]);
+    //       sleep_us(50);
+    //     }
+        
+
+
+    // }
   }
 }
-
 
 int main(void)
 {
@@ -80,26 +215,7 @@ int main(void)
 
   printf("Modbus demo firmware start\r\n");
 
-  // //Initialize I2C port at 400 kHz
-  // i2c_init(i2c, 400 * 1000);
-  // gpio_set_function(sda_pin, GPIO_FUNC_I2C);
-  // gpio_set_function(scl_pin, GPIO_FUNC_I2C);
-  // gpio_pull_up(sda_pin);
-  // gpio_pull_up(scl_pin);
-  // BME280 bme280[2]= { BME280(), BME280()};
-  // //bme280[0].setAddress(0x76);
-  // //bme280[0].reset();
-  // //bme280[1].setAddress(0x77);
-  // //bme280[1].reset();
-
-  // bme280[0].begin(0x76);
-
-  // bme280[0].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
-  // bme280[0].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
-  // bme280[1].begin(0x77);
-  // bme280[1].writeConfigRegister(BME280_STANDBY_500_US,BME280_FILTER_OFF,0);
-  // bme280[1].writeControlRegisters(BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_OVERSAMPLING_1X,BME280_MODE_NORMAL);
-
+ 
   modbus.mb_init(MB_SLAVE_ADDRESS,
                  MB_UART_NUMBER,
                  MB_BAUDRATE,
@@ -111,70 +227,24 @@ int main(void)
                  MB_DE_PIN);
 
   multicore_launch_core1(modbus_process_on_core_1);
-  // UpdateDS18B20Sensor();
-  // for(loop=0;loop<modbus.BME280_MAX;loop++)
-  //     bme280[loop].read();
 
   while(true)
   {
-//    printf("core 0 in sleep...");
-    // if(ds_sensor.count==0)
-    //  {
-    //    UpdateDS18B20Sensor();
-    //  }
-    // else
-    // {
-    //   if(!sensorFirstTime)
-    //    {
-    //     for(loop=0;loop<modbus.dsSensorCount;loop++)
-    //        modbus._t_dsSensors[loop] = ds_sensor.getTemperatureInt16(loop);
 
+    uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
+    // multicore_fifo_push_blocking(time_sec);
 
-    //    for(loop=0;loop<modbus.BME280_MAX;loop++)
-    //     {
-    //      modbus._t_bme280_ID[loop]=bme280[loop].readId();
+     if (mutex_try_enter(&my_mutex,&owner_out)){
+        // printf("from core%d: in Mutex!!\n",core); 
+        // sleep_ms(10);
+        data = time_sec;
+        mutex_exit(&my_mutex);
+        // printf("from core%d: Out Mutex!!\n",core); 
 
-    //      if((modbus._t_bme280_ID[loop] == BME280_ID) ||
-    //         (modbus._t_bme280_ID[loop] == BME280_ID2))
-    //        {
-    //            // ok found sensor
-    //         bme280[loop].read();
-    //         int32_t temp;
-    //         uint32_t hum;
-    //         uint32_t pres;
-    //         temp = bme280[loop].temperature();
-    //         hum = bme280[loop].humidity();
-    //         pres = bme280[loop].pressure();
+        // sleep_ms(10);
+    }
 
-    //         modbus._t_bme280Sensors[loop*6]= temp>>16;
-    //         modbus._t_bme280Sensors[loop*6+1]= temp&0xffff;
-    //         if(modbus._t_bme280_ID[loop] == BME280_ID)
-    //         {
-    //           modbus._t_bme280Sensors[loop*6+2]= hum>>16;
-    //           modbus._t_bme280Sensors[loop*6+3]= hum&0xffff;
-    //         }
-    //         else
-    //         {
-    //           modbus._t_bme280Sensors[loop*6+2]=  0;
-    //           modbus._t_bme280Sensors[loop*6+3]=  0;
-    //         }
-    //         modbus._t_bme280Sensors[loop*6+4]= pres>>16;
-    //         modbus._t_bme280Sensors[loop*6+5]= pres&0xffff;
-    //      }
-    //      else
-    //      {
-    //         for(int loop2=0;loop2<6;loop2++)
-    //             modbus._t_bme280Sensors[loop*6+loop2]= 0;
-    //      }
-
-    //     }
-    //      // send flag to second core to update
-    //     multicore_fifo_push_blocking(1);
-    //   }
-    //     ds_sensor.startConversion();
-    //     sensorFirstTime=0;
-    // }
-      sleep_ms(5000);
+    sleep_ms(1000);
   }
 }
 

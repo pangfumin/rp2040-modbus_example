@@ -32,6 +32,7 @@ public:
     static const char * InstrumentIdString;
 
     // panel register
+    static const uint16_t MB_COMMAND_PANEL_REGISTER_START=1100;
     static const uint16_t MB_COMMAND_PANEL_SWITCH_0_INPUT_REGISTER=1100;
     static const uint16_t MB_COMMAND_PANEL_SWITCH_1_INPUT_REGISTER=1101;
     static const uint16_t MB_COMMAND_PANEL_SWITCH_2_INPUT_REGISTER=1102;
@@ -47,6 +48,10 @@ public:
     static const uint16_t MB_COMMAND_PANEL_LED_5_OUTPUT_REGISTER=1113;
     static const uint16_t MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER=1114;
     static const uint16_t MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER=1115;
+
+    static uint8_t led_history_ringbuffer[8][32];
+    static uint8_t led_history_ringbuffer_index[8];
+    static uint8_t led_history_one_count[8][8]; // per bit
 
     uint16_t UniqueID[4];
 
