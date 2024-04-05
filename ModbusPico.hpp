@@ -12,33 +12,15 @@ public:
     static bool debug;
     static const int COILS_MAX=1;
     static const int INPUTS_MAX=8;
-    static const int DS18B20_MAX=16;
-    static const int ADC_MAX=5;
     static const int BME280_MAX=2; // two sensors
 
-
-    // be aware than adc3 is vsys * 2/3 only on pico
-    //  adc4 is the onboard temperature
-    // all adc returns the raw 12bits
-
     static uint8_t Coils[COILS_MAX];
-    // static uint8_t Inputs[INPUTS_MAX];
-    // static uint8_t Adc[ADC_MAX];
 
-
-    uint16_t dsSensorCount;
-
-    int16_t bme280Sensors[BME280_MAX*2*3];
-    uint16_t bme280Valid;
-    int16_t dsSensors[DS18B20_MAX];
-    uint16_t bme280_ID[BME280_MAX];
 
     // _t means temporary
     //  to sync whit second core
-    int16_t _t_dsSensors[DS18B20_MAX];
-    int16_t _t_bme280Sensors[BME280_MAX*2*3];
-    uint16_t _t_bme280_ID[BME280_MAX];
-    int16_t dsSensorsAddress[DS18B20_MAX * 4];
+
+
     // holdin register add on
     // unique board ID register0 is bit 0..15 register3 is bit 48..64
     static const uint16_t MB_COMMAND_UNIQUE_ID_REGISTER0=200;

@@ -10,10 +10,7 @@
 #include "hardware/adc.h"
 
 bool ModbusPico::debug=true;
-// uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN,3,4,5,6,7,8,9};
 uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN};
-// uint8_t ModbusPico::Inputs[INPUTS_MAX]={14,15,16,17,18,19,20,21};
-// uint8_t ModbusPico::Adc[ADC_MAX]={26,27,28,29,255};
 
 const char *  ModbusPico::InstrumentIdString="Pico Modbus MBE280 Version 3.0\0\0\0\0";
 
@@ -104,140 +101,16 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
 {
 
-    //  if((address >= MB_COMMAND_ADC_REGISTER) &&
-    //     (address < (MB_COMMAND_ADC_REGISTER+ADC_MAX)))
-    //     {
-    //       adc_select_input(address - MB_COMMAND_ADC_REGISTER);
-    //       uint16_t raw_adc = adc_read();
-    //       *reg = raw_adc;
-    //        if(debug)
-    //          printf("Read adc #%d  raw:%d \r\n",
-    //                 address - MB_COMMAND_ADC_REGISTER,raw_adc);
-    //       return MB_NO_ERROR;
-    //     }
-
-    //  // on board temperature in celsius * 10
-    //  if(address == (MB_COMMAND_ADC_REGISTER+5))
-    //  {
-    //      adc_select_input(4);
-    //      uint16_t raw_adc = adc_read();
-    //      float voltage = (float)  adc_read() * 3.3f / 4095.0f;
-    //      float tempC =  27.0f - (voltage - 0.706f) / 0.001721f;
-    //      if(debug)
-    //          printf("Read onboard adc  raw:%d voltage:%2.1fV temp:%3.1f'C",
-    //                 raw_adc, voltage, tempC);
-
-    //      *reg = (uint16_t) (tempC * 10.0f + 0.5f);
-    //      return MB_NO_ERROR;
-    //  }
-
-     if(address == MB_COMMAND_DS18B20_REGISTER_COUNT)
-       {
-         *reg = dsSensorCount;
-         return MB_NO_ERROR;
-       }
-     if(dsSensorCount >0)
-      {
-       if((address >= MB_COMMAND_DS18B20_REGISTER) &&
-          (address < (MB_COMMAND_DS18B20_REGISTER+dsSensorCount)))
-          {
-           *reg = dsSensors[address - MB_COMMAND_DS18B20_REGISTER];
-           return MB_NO_ERROR;
-          }
-       if((address >= MB_COMMAND_DS18B20_REGISTER_ADDRESS) &&
-          (address < (MB_COMMAND_DS18B20_REGISTER_ADDRESS+(dsSensorCount*4))))
-          {
-          *reg = dsSensorsAddress[address - MB_COMMAND_DS18B20_REGISTER_ADDRESS];
-           return MB_NO_ERROR;
-          }
-
-      }
-
-      if((address >=MB_COMMAND_MB280_1_REGISTER) &&
-         (address < (MB_COMMAND_MB280_1_REGISTER+6)))
-      {
-          *reg = bme280Sensors[address - MB_COMMAND_MB280_1_REGISTER];
-           return MB_NO_ERROR;
-      }
-
-      if((address >=MB_COMMAND_MB280_2_REGISTER) &&
-         (address < (MB_COMMAND_MB280_2_REGISTER+6)))
-      {
-          *reg = bme280Sensors[6 + address - MB_COMMAND_MB280_2_REGISTER];
-           return MB_NO_ERROR;
-      }
-
-      if((address ==MB_COMMAND_MB280_ID_REGISTER)||
-         (address ==(MB_COMMAND_MB280_ID_REGISTER+1)))
-      {
-          *reg = bme280_ID[address - MB_COMMAND_MB280_ID_REGISTER];
-           return MB_NO_ERROR;
-      }
-
-
-     return MB_ERROR_ILLEGAL_DATA_ADDRESS;
+     return MB_NO_ERROR;
 }
 
 
 uint8_t ModbusPico::mb_read_input_registers(uint16_t start, uint16_t count)
 {
-
-   // first scan to see if all address are valid
-   int loop;
-   printResponse(21);
-
-   if(count ==0)
-         return MB_ERROR_ILLEGAL_DATA_ADDRESS;
-   uint16_t * array = new uint16_t[count];
-   for(loop=0;loop<count;loop++)
-      if(mb_validate_input_register(start+loop,&array[loop]) == MB_ERROR_ILLEGAL_DATA_ADDRESS)
-        {
-         delete []array;
-         return MB_ERROR_ILLEGAL_DATA_ADDRESS;
-        }
-    // ok all valid then write the stuff
-    mb_response_buf[2]= count*2;
-    for(loop=0;loop<count;loop++)
-    {
-     mb_response_buf_pos++;
-     mb_response_add_single_register(array[loop]);
-    }
-   delete []array;
-   printResponse(22);
    return MB_NO_ERROR;
 }
 
 
-
-
-// uint8_t ModbusPico::mb_read_input_status(uint16_t start, uint16_t count) {
-//   printResponse(1);
-//   uint8_t mask=1;
-//   uint8_t value=0;
-//   int loop;
-//   int nbyte = count/8;
-//   uint8_t  Mask;
-//   if((count % 8)!=0)
-//       nbyte++;
-//   if(debug)
-//     printf("read input status start:%d count:%d \n\r",start,count);
-//   if((start+count) > INPUTS_MAX)
-//       return MB_ERROR_ILLEGAL_DATA_ADDRESS;
-//   mb_response_buf[2]=nbyte;
-//   for(loop=0;loop<count;loop++)
-//    {
-//       value |= gpio_get(Inputs[start+loop])? mask : 0;
-//       mask *=2;
-//       if(((loop %8)== 7) || (loop == (count-1)))
-//        {
-//          mb_response_buf[mb_response_buf_pos++]= value;
-//          value = 0;
-//          mask=1;
-//        }
-//    }
-//    printResponse(2);
-//    return MB_NO_ERROR;
-// }
 
 
 uint8_t ModbusPico::mb_read_coil_status(uint16_t start, uint16_t count) {
@@ -442,15 +315,6 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
           printf("\n\r");
        }
 
-    //  adc_init();
-    //  // enable ADC
-    //  for(loop=0;loop<ADC_MAX;loop++)
-    //  {
-    //    if(Adc[loop]==255)
-    //      adc_set_temp_sensor_enabled(true);
-    //    else
-    //      adc_gpio_init(Adc[loop]);
-    //  }
 
      ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,
                             rx_pin, tx_pin, de_pin);

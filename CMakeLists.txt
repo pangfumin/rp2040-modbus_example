@@ -9,12 +9,12 @@ set(CMAKE_CXX_STANDART 17)
 
 include_directories(./ ./sensors)
 set(SOURCES main.cpp
-    modbus.cpp modbus.hpp ModbusPico.cpp ModbusPico.hpp
-    myI2C.cpp myI2C.hpp
+    modbus.cpp 
+    modbus.hpp 
+    ModbusPico.cpp 
+    ModbusPico.hpp
     panel_io.cpp
-    sensors/ds18b20.cpp sensors/ds18b20.hpp
-    sensors/one_wire.cpp sensors/one_wire.h
-    sensors/BME280.cpp sensors/BME280.h)
+    )
 
 pico_sdk_init()
 

@@ -22,7 +22,7 @@ def reg2string(my_list):
 # unit1.serial.flush()
 # time.sleep(0.1)
 
-unit2 = minimalmodbus.Instrument('/dev/ttyUSB0',2)
+unit2 = minimalmodbus.Instrument('/dev/ttyUSB0',1)
 unit2.serial.baudrate=115200
 
 

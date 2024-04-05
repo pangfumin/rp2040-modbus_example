@@ -1,0 +1,1 @@
+cc modbusRTU.c -o modbusRTU `pkg-config --cflags --libs libmodbus`

@@ -4,14 +4,11 @@
 #include <stdio.h>
 #include "pico/multicore.h"
 #include "hardware/i2c.h"
-#include "sensors/ds18b20.hpp"
-#include "myI2C.hpp"
-#include "sensors/BME280.h"
 #include "ModbusPico.hpp"
 
 //////////////////////////////////////////////////////////////////
 // Modbus parameters
-#define MB_SLAVE_ADDRESS 2
+#define MB_SLAVE_ADDRESS 1
 #define MB_BAUDRATE      115200
 #define MB_DATA_BITS     8
 #define MB_STOP_BITS     1
@@ -28,7 +25,6 @@
 
 
 ModbusPico modbus;
-ds18b20 ds_sensor(13);
 
 //////////////////////////////////////////////////////////////////
 
@@ -52,18 +48,11 @@ void modbus_process_on_core_1()
    // do we have to update sensors
    //if(multicore_fifo_rvalid())
      {
-      //  for(loop=0;loop<modbus.dsSensorCount;loop++)
-      //    {
-      //      modbus.dsSensors[loop] = modbus._t_dsSensors[loop];
-      //    }
-      //  for(loop=0;loop<(modbus.BME280_MAX*2*3);loop++) // number of sensors 3 values of 32 bits to 16 bits register.
-      //   {
-      //     modbus.bme280Sensors[loop]= modbus._t_bme280Sensors[loop];
-      //   }
-        for(loop=0;loop<modbus.BME280_MAX;loop++) {
-          // modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
-          modbus.bme280_ID[loop] = (loop == 0? BME280_ID : BME280_ID2);
-        }
+     
+        // for(loop=0;loop<modbus.BME280_MAX;loop++) {
+        //   // modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
+        //   modbus.bme280_ID[loop] = (loop == 0? BME280_ID : BME280_ID2);
+        // }
           
 
       //multicore_fifo_pop_blocking();
@@ -77,31 +66,6 @@ void modbus_process_on_core_1()
     modbus.sensor_2 = time_sec*30;
   }
 }
-
-
-// void UpdateDS18B20Sensor()
-// {
-//         ds_sensor.scanSensors();
-
-//            modbus.dsSensorCount=modbus.DS18B20_MAX;
-//         if(ds_sensor.count > modbus.DS18B20_MAX)
-//            modbus.dsSensorCount = modbus.DS18B20_MAX;
-//         else
-//            modbus.dsSensorCount = ds_sensor.count;
-
-//         if(modbus.dsSensorCount>0)
-//         {
-//           // fill sensor address
-//           for(int loop=0;loop<modbus.dsSensorCount;loop++)
-//              for(int reg16=0;reg16<4;reg16++)
-//               {
-//                   modbus.dsSensorsAddress[loop*4 + reg16]= (uint16_t) ds_sensor.sensorAddress[loop].rom[reg16*2]<<8 |
-// 							   (uint16_t) (ds_sensor.sensorAddress[loop].rom[reg16*2+1]);
-//               }
-//         }
-
-// }
-
 
 
 int main(void)
