@@ -100,8 +100,7 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 
 uint8_t ModbusPico::mb_validate_input_register(uint16_t address, uint16_t * reg)
 {
-
-     return MB_NO_ERROR;
+  return MB_NO_ERROR;
 }
 
 
@@ -291,29 +290,19 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
     init_gpio();
     clear_all();
 
-    //  if(debug)
-    //      printf("initialize inputs\n\r");
-
-
-    // for(loop=0;loop<INPUTS_MAX;loop++)
-    //   {
-    //      gpio_init(Inputs[loop]);
-    //      gpio_set_dir(Inputs[loop], GPIO_IN);
-    //   }
-
-      if(debug)
-          printf("Read Unique ID: 0x");
-      pico_unique_board_id_t board_id;
-      pico_get_unique_board_id(&board_id);
-      for(loop=0;loop<4;loop++)
-        UniqueID[loop] = board_id.id[loop*2+1] | (board_id.id[loop*2]<<8);
-      if(debug)
-       {
-          for(loop=0;loop<PICO_UNIQUE_BOARD_ID_SIZE_BYTES;loop++)
-           printf("%02X",board_id.id[loop]);
+    if(debug)
+        printf("Read Unique ID: 0x");
+    pico_unique_board_id_t board_id;
+    pico_get_unique_board_id(&board_id);
+    for(loop=0;loop<4;loop++)
+      UniqueID[loop] = board_id.id[loop*2+1] | (board_id.id[loop*2]<<8);
+    if(debug)
+      {
+        for(loop=0;loop<PICO_UNIQUE_BOARD_ID_SIZE_BYTES;loop++)
+          printf("%02X",board_id.id[loop]);
 //           printf("%02X",board_id.id[PICO_UNIQUE_BOARD_ID_SIZE_BYTES - loop -1]);
-          printf("\n\r");
-       }
+        printf("\n\r");
+      }
 
 
      ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,

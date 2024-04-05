@@ -11,11 +11,8 @@ public:
     static const uint16_t SOFTWARE_VERSION=0x0300;
     static bool debug;
     static const int COILS_MAX=1;
-    static const int INPUTS_MAX=8;
-    static const int BME280_MAX=2; // two sensors
 
     static uint8_t Coils[COILS_MAX];
-
 
     // _t means temporary
     //  to sync whit second core
@@ -50,23 +47,6 @@ public:
     static const uint16_t MB_COMMAND_PANEL_LED_5_OUTPUT_REGISTER=1113;
     static const uint16_t MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER=1114;
     static const uint16_t MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER=1115;
-
-
-
-
-    // DS18B20 sensor register
-    static const uint16_t MB_COMMAND_DS18B20_REGISTER_COUNT=2000;
-    static const uint16_t MB_COMMAND_DS18B20_REGISTER=2001; // up to 2016
-    static const uint16_t MB_COMMAND_DS18B20_REGISTER_ADDRESS=2020; // up to 2016
-    static const uint16_t MB_COMMAND_MB280_ID_REGISTER=2200; //
-    static const uint16_t MB_COMMAND_MB280_1_REGISTER=2210; //
-    static const uint16_t MB_COMMAND_MB280_2_REGISTER=2220; //
-
-
-
-    // ADC
-    static const uint16_t MB_COMMAND_ADC_REGISTER=2100;  //up to 2104
-    // *** special register 2105 is the onboard temperature in celsius * 10.0
 
     uint16_t UniqueID[4];
 
