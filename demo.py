@@ -71,21 +71,13 @@ while True:
             unit.write_bit(0,led_state,5)
 
             # write led register 07
-            if led_data == 0x100:
-                led_data = 0
-
-            # if cnt == 5:
-            #     led_data = not led_data
-            #     cnt = 0
-            unit.write_register(1115,led_data,0,6)
-            led_data = led_data + 1
-            # cnt = cnt+1
+            for shift in range(0,8):
+                led_data = 1 << shift
+                for i in range(0,8):
+                    unit.write_register(1108 + i,led_data,0,6)
 
             panel_input_05 = unit.read_register(1105,0,3)
             print("\n panel_input_05 {}".format(panel_input_05))
-
-            
-
 
         except Exception as error:
             print("Unable to read Modbus Node ",unit.address)
