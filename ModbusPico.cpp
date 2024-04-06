@@ -188,17 +188,20 @@ uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
       case MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER:
       case MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER:
       {
+        uint16_t temp = addr - MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER;
           set_output(addr - MB_COMMAND_PANEL_REGISTER_START, value & 0xFF);
           uint8_t next_index 
-            = led_history_ringbuffer_index[7] + 1 == 32 ? 
-              0 : led_history_ringbuffer_index[7] + 1;
-          uint8_t pop_data = led_history_ringbuffer[7][next_index];
+            = led_history_ringbuffer_index[temp] + 1 == 32 ? 
+              0 : led_history_ringbuffer_index[temp] + 1;
+          uint8_t pop_data = led_history_ringbuffer[temp][next_index];
           uint8_t push_data = value & 0xFF;
-          led_history_ringbuffer[7][led_history_ringbuffer_index[7]] = push_data;
+          led_history_ringbuffer[temp][led_history_ringbuffer_index[temp]] = push_data;
           for (int i = 0; i < 8; i++) {
-            led_history_one_count[7][i] -= (pop_data >> i) & 0x01;
-            led_history_one_count[7][i] += (push_data >> i) & 0x01;
+            led_history_one_count[temp][i] -= (pop_data >> i) & 0x01;
+            led_history_one_count[temp][i] += (push_data >> i) & 0x01;
           }
+
+          led_history_ringbuffer_index[temp] = next_index;
           
           break;
       }

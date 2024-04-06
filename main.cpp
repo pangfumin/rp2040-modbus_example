@@ -28,23 +28,24 @@
 auto_init_mutex(my_mutex);
 uint32_t owner_out;
 
-uint16_t data = 0;
-void trylock(int core){
-    uint32_t owner_out;
-    if (mutex_try_enter(&my_mutex,&owner_out)){
-        // printf("from core%d: in Mutex!!\n",core); 
-        sleep_ms(10);
-        mutex_exit(&my_mutex);
-        // printf("from core%d: Out Mutex!!\n",core); 
+// uint16_t data = 0;
+// void trylock(int core){
+//     uint32_t owner_out;
+//     if (mutex_try_enter(&my_mutex,&owner_out)){
+//         // printf("from core%d: in Mutex!!\n",core); 
+//         sleep_ms(10);
+//         mutex_exit(&my_mutex);
+//         // printf("from core%d: Out Mutex!!\n",core); 
 
-        sleep_ms(10);
-    }
-    else{
-        // printf("from core%d: locked %d\n",core,owner_out);
-        sleep_ms(10);
-    }
-}
+//         sleep_ms(10);
+//     }
+//     else{
+//         // printf("from core%d: locked %d\n",core,owner_out);
+//         sleep_ms(10);
+//     }
+// }
 
+uint8_t led_history_one_count_temp[8][8];
 
 static char brightness_phase_lookup[32][31] =
 { //
@@ -138,10 +139,7 @@ void modbus_process_on_core_1()
  int loop;
   while(true)
   {
-   // do we have to update sensors
-   
-   
-
+   // do we have to update
     modbus.mb_process();
 
     uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
@@ -161,17 +159,18 @@ void modbus_process_on_core_1()
     // }
 
     if (mutex_try_enter(&my_mutex,&owner_out)){
-        // printf("from core%d: in Mutex!!\n",core); 
-        // sleep_ms(10);
-        modbus.sensor_0 = data;
+        for (int i = 0; i < 8; i++) {
+          for (int j = 0; j < 8; j++) {
+            led_history_one_count_temp[i][j] = modbus.led_history_one_count[i][j];
+          }
+        }
         mutex_exit(&my_mutex);
-        // printf("from core%d: Out Mutex!!\n",core); 
-
-        // sleep_ms(10);
     }
 
+    uint8_t b =  led_history_one_count_temp[7][0];
 
-    // modbus.sensor_0 = time_sec;
+
+    modbus.sensor_0 = b;
     modbus.sensor_1 = time_sec;
     modbus.sensor_2 = time_sec;
 
@@ -232,19 +231,45 @@ int main(void)
   {
 
     uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
-    // multicore_fifo_push_blocking(time_sec);
-
+    uint8_t temp[8][8];
      if (mutex_try_enter(&my_mutex,&owner_out)){
         // printf("from core%d: in Mutex!!\n",core); 
         // sleep_ms(10);
-        data = time_sec;
-        mutex_exit(&my_mutex);
-        // printf("from core%d: Out Mutex!!\n",core); 
+        // data = time_sec;
 
-        // sleep_ms(10);
+        for (int i = 0; i < 8; i++) {
+          for (int bitidx = 0; bitidx < 8; bitidx++) {
+            temp[i][bitidx] = led_history_one_count_temp[i][bitidx];
+          }
+        }
+        mutex_exit(&my_mutex);
     }
 
-    sleep_ms(1000);
+
+            
+    
+    for (int phase = 0; phase < 31; phase++) {
+        for (int i = 0; i < 8; i++) {
+          uint8_t value = 0;
+          for (int bitidx = 0; bitidx < 8; bitidx++) {
+            uint64_t bit_brightness = temp[i][bitidx];
+            if (brightness_phase_lookup[bit_brightness][phase]) {
+              value |= 1 << bitidx;
+            }
+            
+          }
+
+          set_output(i 
+            + ModbusPico::MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER 
+            - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
+            value);
+
+        }
+
+      // sleep_us(50);
+    }
+
+    // sleep_ms(1000);
   }
 }
 

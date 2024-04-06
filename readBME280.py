@@ -41,6 +41,9 @@ led_state = 0
 
 led_data = 0
 
+
+cnt = 0
+
 while True:
     # check if sensors are valid
     for unit in units:
@@ -68,10 +71,15 @@ while True:
             unit.write_bit(0,led_state,5)
 
             # write led register 07
-            if led_data == 0x100:
-                led_data = 0
+            # if led_data == 0x100:
+            #     led_data = 0
+
+            if cnt == 31:
+                led_data = not led_data
+                cnt = 0
             unit.write_register(1115,led_data,0,6)
-            led_data = led_data + 1
+            # led_data = led_data + 1
+            cnt = cnt+1
 
             panel_input_05 = unit.read_register(1105,0,3)
             print("\n panel_input_05 {}".format(panel_input_05))
