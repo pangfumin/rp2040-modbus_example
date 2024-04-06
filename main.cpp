@@ -28,24 +28,10 @@
 auto_init_mutex(my_mutex);
 uint32_t owner_out;
 
-// uint16_t data = 0;
-// void trylock(int core){
-//     uint32_t owner_out;
-//     if (mutex_try_enter(&my_mutex,&owner_out)){
-//         // printf("from core%d: in Mutex!!\n",core); 
-//         sleep_ms(10);
-//         mutex_exit(&my_mutex);
-//         // printf("from core%d: Out Mutex!!\n",core); 
-
-//         sleep_ms(10);
-//     }
-//     else{
-//         // printf("from core%d: locked %d\n",core,owner_out);
-//         sleep_ms(10);
-//     }
-// }
-
-uint8_t led_history_one_count_temp[8][8];
+uint8_t panel_led_values_temp[8];
+uint8_t led_history_ringbuffer[8][32] = {0};
+uint8_t led_history_ringbuffer_index[8] = {0};
+uint8_t led_history_one_count[8][8] = {0}; // per bit
 
 static char brightness_phase_lookup[32][31] =
 { //
@@ -142,65 +128,26 @@ void modbus_process_on_core_1()
    // do we have to update
     modbus.mb_process();
 
-    uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
-
-    // if(multicore_fifo_rvalid())
-    // {
-    
-    //   // for(loop=0;loop<modbus.BME280_MAX;loop++) {
-    //   //   // modbus.bme280_ID[loop]= modbus._t_bme280_ID[loop];
-    //   //   modbus.bme280_ID[loop] = (loop == 0? BME280_ID : BME280_ID2);
-    //   // }
-      
-        
-
-    //   uint32_t g = multicore_fifo_pop_blocking();
-    //   modbus.sensor_0 = g;
-    // }
-
     if (mutex_try_enter(&my_mutex,&owner_out)){
-        for (int i = 0; i < 8; i++) {
-          for (int j = 0; j < 8; j++) {
-            led_history_one_count_temp[i][j] = modbus.led_history_one_count[i][j];
-          }
+        for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
+          // 
+          panel_led_values_temp[out_reg_idx]= modbus.panel_led_values[out_reg_idx];
         }
         mutex_exit(&my_mutex);
     }
 
-    uint8_t b =  led_history_one_count_temp[7][0];
+    // uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
+    // modbus.sensor_0 = time_sec;
+    // modbus.sensor_1 = time_sec;
+    // modbus.sensor_2 = time_sec;
 
-
-    modbus.sensor_0 = b;
-    modbus.sensor_1 = time_sec;
-    modbus.sensor_2 = time_sec;
-
-    // // char bright = 31 * sin()
-    // for (int i = 0; i < 360; i++) {
-    //    uint64_t bright =  31 * sin(i / 180.0 * 3.14159);
-
-    //    if (bright < 0)
-    //      bright = -bright;
-
-    //     // modbus.mb_process();
-
-    //     // uint16_t time_sec = (uint16_t) (time_us_64()/(1000*1000));
-
-    //     // modbus.sensor_0 = time_sec*10;
-    //     // modbus.sensor_1 = time_sec*20;
-    //     // modbus.sensor_2 = time_sec*30;
-
-    //     // modbus.sensor_0 = bright;
-    //     for (int phase =0; phase < 31; phase++) {
-          
-    //       set_output(DEBUG_OUTPUT, brightness_phase_lookup[bright][phase]);
-    //       sleep_us(50);
-    //     }
-        
-
-
-    // }
   }
 }
+
+typedef enum {
+  PANEL_LED_IMMEDIATE = 0,
+  PANEL_LED_LOW_PASS_FILTED = 1,
+} PanelLedPattern;
 
 int main(void)
 {
@@ -227,48 +174,64 @@ int main(void)
 
   multicore_launch_core1(modbus_process_on_core_1);
 
+  PanelLedPattern led_mode = PANEL_LED_LOW_PASS_FILTED;
+
   while(true)
   {
 
-    uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
-    uint8_t temp[8][8];
-     if (mutex_try_enter(&my_mutex,&owner_out)){
-        // printf("from core%d: in Mutex!!\n",core); 
-        // sleep_ms(10);
-        // data = time_sec;
-
-        for (int i = 0; i < 8; i++) {
-          for (int bitidx = 0; bitidx < 8; bitidx++) {
-            temp[i][bitidx] = led_history_one_count_temp[i][bitidx];
-          }
-        }
-        mutex_exit(&my_mutex);
+    uint8_t temp[8];
+    if (mutex_try_enter(&my_mutex,&owner_out)){
+      for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
+        temp[out_reg_idx] = panel_led_values_temp[out_reg_idx];
+      }
+      mutex_exit(&my_mutex);
     }
 
-
-            
-    
-    for (int phase = 0; phase < 31; phase++) {
+    if (led_mode == PANEL_LED_IMMEDIATE) {
+      for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
+        uint8_t value = temp[out_reg_idx];
+        set_output(out_reg_idx 
+          + ModbusPico::MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER 
+          - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
+          value);
+      }
+    } else if (led_mode == PANEL_LED_LOW_PASS_FILTED)  {
+      // Update LED history in ring buffer
+      for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
+        uint8_t value = temp[out_reg_idx];
+        uint8_t next_index 
+          = led_history_ringbuffer_index[out_reg_idx] + 1 == 32 ? 
+            0 : led_history_ringbuffer_index[out_reg_idx] + 1;
+        uint8_t pop_data = led_history_ringbuffer[out_reg_idx][next_index];
+        uint8_t push_data = value & 0xFF;
+        led_history_ringbuffer[out_reg_idx][led_history_ringbuffer_index[out_reg_idx]] = push_data;
         for (int i = 0; i < 8; i++) {
-          uint8_t value = 0;
-          for (int bitidx = 0; bitidx < 8; bitidx++) {
-            uint64_t bit_brightness = temp[i][bitidx];
-            if (brightness_phase_lookup[bit_brightness][phase]) {
-              value |= 1 << bitidx;
+          led_history_one_count[out_reg_idx][i] -= (pop_data >> i) & 0x01;
+          led_history_one_count[out_reg_idx][i] += (push_data >> i) & 0x01;
+        }
+
+        led_history_ringbuffer_index[out_reg_idx] = next_index;
+      }
+
+      // Update LED output acording to brightness and phase
+      for (int phase = 0; phase < 31; phase++) {
+          for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
+            uint8_t value = 0;
+            for (int bitidx = 0; bitidx < 8; bitidx++) {
+              uint64_t bit_brightness = led_history_one_count[out_reg_idx][bitidx];
+              if (brightness_phase_lookup[bit_brightness][phase]) {
+                value |= 1 << bitidx;
+              }
             }
-            
+
+            set_output(out_reg_idx
+              + ModbusPico::MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER 
+              - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
+              value);
           }
-
-          set_output(i 
-            + ModbusPico::MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER 
-            - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
-            value);
-
-        }
-
-      // sleep_us(50);
+        sleep_us(20);  // delay
+      }
     }
-
     // sleep_ms(1000);
   }
 }

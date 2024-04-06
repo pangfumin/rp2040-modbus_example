@@ -11,9 +11,7 @@
 
 bool ModbusPico::debug=true;
 uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN};
-uint8_t ModbusPico::led_history_ringbuffer[8][32] = {0};
-uint8_t ModbusPico::led_history_ringbuffer_index[8] = {0};
-uint8_t ModbusPico::led_history_one_count[8][8] = {0};
+uint8_t ModbusPico::panel_led_values[8] = {0};
 
 const char *  ModbusPico::InstrumentIdString="Pico Modbus MBE280 Version 3.0\0\0\0\0";
 
@@ -73,8 +71,6 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
           *reg = (uint16_t)get_input(addr - MB_COMMAND_PANEL_REGISTER_START);
           return MB_NO_ERROR;
         }
-           
-             
         case MB_COMMAND_UNIQUE_ID_REGISTER0:
         case MB_COMMAND_UNIQUE_ID_REGISTER1:
         case MB_COMMAND_UNIQUE_ID_REGISTER2:
@@ -189,21 +185,8 @@ uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
       case MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER:
       {
         uint16_t temp = addr - MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER;
-          set_output(addr - MB_COMMAND_PANEL_REGISTER_START, value & 0xFF);
-          uint8_t next_index 
-            = led_history_ringbuffer_index[temp] + 1 == 32 ? 
-              0 : led_history_ringbuffer_index[temp] + 1;
-          uint8_t pop_data = led_history_ringbuffer[temp][next_index];
-          uint8_t push_data = value & 0xFF;
-          led_history_ringbuffer[temp][led_history_ringbuffer_index[temp]] = push_data;
-          for (int i = 0; i < 8; i++) {
-            led_history_one_count[temp][i] -= (pop_data >> i) & 0x01;
-            led_history_one_count[temp][i] += (push_data >> i) & 0x01;
-          }
-
-          led_history_ringbuffer_index[temp] = next_index;
-          
-          break;
+        panel_led_values[temp] = value & 0xFF;
+        break;
       }
 
       default:
@@ -268,18 +251,15 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
      if(debug)
          printf("init\n\r");
 
-
-
      if(debug)
          printf("initialize coils\n\r");
 
-
     // enable Coils
     for(loop=0;loop<COILS_MAX;loop++)
-      {
-         gpio_init(Coils[loop]);
-         gpio_set_dir(Coils[loop], GPIO_OUT);
-      }
+    {
+      gpio_init(Coils[loop]);
+      gpio_set_dir(Coils[loop], GPIO_OUT);
+    }
 
     init_gpio();
     clear_all();
@@ -291,16 +271,14 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
     for(loop=0;loop<4;loop++)
       UniqueID[loop] = board_id.id[loop*2+1] | (board_id.id[loop*2]<<8);
     if(debug)
-      {
-        for(loop=0;loop<PICO_UNIQUE_BOARD_ID_SIZE_BYTES;loop++)
-          printf("%02X",board_id.id[loop]);
+    {
+      for(loop=0;loop<PICO_UNIQUE_BOARD_ID_SIZE_BYTES;loop++)
+        printf("%02X",board_id.id[loop]);
 //           printf("%02X",board_id.id[PICO_UNIQUE_BOARD_ID_SIZE_BYTES - loop -1]);
-        printf("\n\r");
-      }
-
-
-     ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,
-                            rx_pin, tx_pin, de_pin);
+      printf("\n\r");
+    }
+    ModbusManager::mb_init(slave_address, uart_num, baudrate, data_bits, stop_bits, parity,
+        rx_pin, tx_pin, de_pin);
 
  }
 

@@ -49,9 +49,7 @@ public:
     static const uint16_t MB_COMMAND_PANEL_LED_6_OUTPUT_REGISTER=1114;
     static const uint16_t MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER=1115;
 
-    static uint8_t led_history_ringbuffer[8][32];
-    static uint8_t led_history_ringbuffer_index[8];
-    static uint8_t led_history_one_count[8][8]; // per bit
+    static uint8_t panel_led_values[8];
 
     uint16_t UniqueID[4];
 
