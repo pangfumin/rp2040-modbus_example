@@ -69,7 +69,6 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
         case MB_COMMAND_PANEL_SWITCH_4_INPUT_REGISTER:
         case MB_COMMAND_PANEL_SWITCH_5_INPUT_REGISTER:
         {
-          // *reg = (uint16_t)get_input(addr - MB_COMMAND_PANEL_REGISTER_START);
           *reg = panel_switch_values[addr - MB_COMMAND_PANEL_REGISTER_START];
           return MB_NO_ERROR;
         }
@@ -188,7 +187,6 @@ uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
       {
         uint16_t temp = addr - MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER;
         panel_led_values[temp] = value & 0xFF;
-        // set_output(addr - MB_COMMAND_PANEL_REGISTER_START, value & 0xFF);
         break;
       }
 

@@ -186,18 +186,19 @@ int main(void)
   while(true)
   {
 
-    uint8_t temp[8];
+    uint8_t input_temp[8];
+    uint8_t output_temp[8];
     for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
-      temp[in_reg_idx] = get_input(in_reg_idx);
+      input_temp[in_reg_idx] = get_input(in_reg_idx);
     }
     if (mutex_try_enter(&my_mutex,&owner_out)){
 
       for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
-        panel_switch_values_temp[in_reg_idx] = temp[in_reg_idx];
+        panel_switch_values_temp[in_reg_idx] = input_temp[in_reg_idx];
       }
 
       for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
-        temp[out_reg_idx] = panel_led_values_temp[out_reg_idx];
+        output_temp[out_reg_idx] = panel_led_values_temp[out_reg_idx];
       }
 
       mutex_exit(&my_mutex);
@@ -205,7 +206,7 @@ int main(void)
 
     if (led_mode == PANEL_LED_IMMEDIATE) {
       for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
-        uint8_t value = temp[out_reg_idx];
+        uint8_t value = output_temp[out_reg_idx];
         set_output(out_reg_idx 
           + ModbusPico::MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER 
           - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
@@ -214,7 +215,7 @@ int main(void)
     } else if (led_mode == PANEL_LED_LOW_PASS_FILTED)  {
       // Update LED history in ring buffer
       for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
-        uint8_t value = temp[out_reg_idx];
+        uint8_t value = output_temp[out_reg_idx];
         uint8_t next_index 
           = led_history_ringbuffer_index[out_reg_idx] + 1 == 32 ? 
             0 : led_history_ringbuffer_index[out_reg_idx] + 1;
