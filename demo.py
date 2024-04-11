@@ -49,35 +49,36 @@ while True:
     for unit in units:
         print("\nNode ",unit.address)
         try:
-            print("\n Pico Unique ID:",hex(unit.read_register(200,0,3)),end="")
-            print(hex(unit.read_register(201,0,3))[2:],end="")
-            print(hex(unit.read_register(202,0,3))[2:],end="")
-            print(hex(unit.read_register(203,0,3))[2:])
-            print(" Unit Type Id :", unit.read_register(204,0,3))
-            print(" Unit Type String:", reg2string(unit.read_registers(300,16,3)))
-            V = unit.read_register(205,0,3)
-            print(" Version: {}.{:02d}".format(V>>8,V&255))
+            # print("\n Pico Unique ID:",hex(unit.read_register(200,0,3)),end="")
+            # print(hex(unit.read_register(201,0,3))[2:],end="")
+            # print(hex(unit.read_register(202,0,3))[2:],end="")
+            # print(hex(unit.read_register(203,0,3))[2:])
+            # print(" Unit Type Id :", unit.read_register(204,0,3))
+            # print(" Unit Type String:", reg2string(unit.read_registers(300,16,3)))
+            # V = unit.read_register(205,0,3)
+            # print(" Version: {}.{:02d}".format(V>>8,V&255))
 
-            sensor_0_data = unit.read_register(1000,0,3)
-            print ("  sensor_0 : ", sensor_0_data)
-            sensor_1_data = unit.read_register(1001,0,3)
-            print ("  sensor_1 : ", sensor_1_data)
-            sensor_2_data = unit.read_register(1002,0,3)
-            print ("  sensor_2 : ", sensor_2_data)
+            # sensor_0_data = unit.read_register(1000,0,3)
+            # print ("  sensor_0 : ", sensor_0_data)
+            # sensor_1_data = unit.read_register(1001,0,3)
+            # print ("  sensor_1 : ", sensor_1_data)
+            # sensor_2_data = unit.read_register(1002,0,3)
+            # print ("  sensor_2 : ", sensor_2_data)
 
 
             # write to register
             led_state = not led_state
             unit.write_bit(0,led_state,5)
 
-            # write led register 07
-            for shift in range(0,8):
-                led_data = 1 << shift
-                for i in range(0,8):
-                    unit.write_register(1108 + i,led_data,0,6)
-
-            panel_input_05 = unit.read_register(1105,0,3)
-            print("\n panel_input_05 {}".format(panel_input_05))
+            # # write led register 07
+            # for shift in range(0,8):
+            #     led_data = 1 << shift
+            #     for i in range(0,8):
+            #         unit.write_register(1108 + i,led_data,0,6)
+            for i in range(0,5):
+                panel_input_05 = unit.read_register(i + 1100,0,3)
+                print("\n panel_input_05 {} -> {}".format(i, panel_input_05))
+                unit.write_register(1108 + i,panel_input_05,0,6)
 
         except Exception as error:
             print("Unable to read Modbus Node ",unit.address)

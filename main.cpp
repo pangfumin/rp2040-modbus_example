@@ -5,7 +5,7 @@
 #include <math.h> 
 
 #include "pico/multicore.h"
-#include "hardware/i2c.h"
+#include "panel_io.hpp"
 #include "ModbusPico.hpp"
 
 //////////////////////////////////////////////////////////////////
@@ -29,6 +29,7 @@ auto_init_mutex(my_mutex);
 uint32_t owner_out;
 
 uint8_t panel_led_values_temp[8];
+uint8_t panel_switch_values_temp[8];
 uint8_t led_history_ringbuffer[8][32] = {0};
 uint8_t led_history_ringbuffer_index[8] = {0};
 uint8_t led_history_one_count[8][8] = {0}; // per bit
@@ -133,6 +134,10 @@ void modbus_process_on_core_1()
           // 
           panel_led_values_temp[out_reg_idx]= modbus.panel_led_values[out_reg_idx];
         }
+
+        for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
+          modbus.panel_switch_values[in_reg_idx] = panel_switch_values_temp[in_reg_idx];
+        }
         mutex_exit(&my_mutex);
     }
 
@@ -161,6 +166,8 @@ int main(void)
 
   printf("Modbus demo firmware start\r\n");
 
+  init_gpio();
+  clear_all();
  
   modbus.mb_init(MB_SLAVE_ADDRESS,
                  MB_UART_NUMBER,
@@ -180,10 +187,19 @@ int main(void)
   {
 
     uint8_t temp[8];
+    for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
+      temp[in_reg_idx] = get_input(in_reg_idx);
+    }
     if (mutex_try_enter(&my_mutex,&owner_out)){
+
+      for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
+        panel_switch_values_temp[in_reg_idx] = temp[in_reg_idx];
+      }
+
       for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
         temp[out_reg_idx] = panel_led_values_temp[out_reg_idx];
       }
+
       mutex_exit(&my_mutex);
     }
 
@@ -229,7 +245,7 @@ int main(void)
               - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
               value);
           }
-        sleep_us(20);  // delay
+        sleep_us(50);  // delay
       }
     }
     // sleep_ms(1000);

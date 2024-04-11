@@ -1,7 +1,6 @@
  #pragma once
 
 #include "modbus.hpp"
-#include "panel_io.hpp"
 #include <vector>
 
 class ModbusPico : public ModbusManager
@@ -50,6 +49,7 @@ public:
     static const uint16_t MB_COMMAND_PANEL_LED_7_OUTPUT_REGISTER=1115;
 
     static uint8_t panel_led_values[8];
+    static uint8_t panel_switch_values[8];
 
     uint16_t UniqueID[4];
 

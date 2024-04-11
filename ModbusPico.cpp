@@ -12,6 +12,7 @@
 bool ModbusPico::debug=true;
 uint8_t ModbusPico::Coils[COILS_MAX]={PICO_DEFAULT_LED_PIN};
 uint8_t ModbusPico::panel_led_values[8] = {0};
+uint8_t ModbusPico::panel_switch_values[8] = {0};
 
 const char *  ModbusPico::InstrumentIdString="Pico Modbus MBE280 Version 3.0\0\0\0\0";
 
@@ -68,7 +69,8 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
         case MB_COMMAND_PANEL_SWITCH_4_INPUT_REGISTER:
         case MB_COMMAND_PANEL_SWITCH_5_INPUT_REGISTER:
         {
-          *reg = (uint16_t)get_input(addr - MB_COMMAND_PANEL_REGISTER_START);
+          // *reg = (uint16_t)get_input(addr - MB_COMMAND_PANEL_REGISTER_START);
+          *reg = panel_switch_values[addr - MB_COMMAND_PANEL_REGISTER_START];
           return MB_NO_ERROR;
         }
         case MB_COMMAND_UNIQUE_ID_REGISTER0:
@@ -186,6 +188,7 @@ uint8_t ModbusPico::mb_write_single_register(uint16_t start, uint16_t value) {
       {
         uint16_t temp = addr - MB_COMMAND_PANEL_LED_0_OUTPUT_REGISTER;
         panel_led_values[temp] = value & 0xFF;
+        // set_output(addr - MB_COMMAND_PANEL_REGISTER_START, value & 0xFF);
         break;
       }
 
@@ -261,8 +264,7 @@ void ModbusPico::mb_init(uint8_t slave_address, uint8_t uart_num,
       gpio_set_dir(Coils[loop], GPIO_OUT);
     }
 
-    init_gpio();
-    clear_all();
+
 
     if(debug)
         printf("Read Unique ID: 0x");
