@@ -70,15 +70,23 @@ while True:
             led_state = not led_state
             unit.write_bit(0,led_state,5)
 
+            unit.write_register(110 + 0, 0, 0, 6)  # led_pattern
+            unit.write_register(110 + 1, 50, 0, 6) # delay_us
+
+            led_pattern = unit.read_register(110,0,3)
+            delay_us = unit.read_register(111,0,3)
+            print("\n led_pattern {} -> {}".format(110, led_pattern))
+            print("\n delay_us {} -> {}".format(111, delay_us))
+
             # # write led register 07
-            # for shift in range(0,8):
-            #     led_data = 1 << shift
-            #     for i in range(0,8):
-            #         unit.write_register(1108 + i,led_data,0,6)
-            for i in range(0,5):
-                panel_input_05 = unit.read_register(i + 1100,0,3)
-                print("\n panel_input_05 {} -> {}".format(i, panel_input_05))
-                unit.write_register(1108 + i,panel_input_05,0,6)
+            for shift in range(0,8):
+                led_data = 1 << shift
+                for i in range(0,8):
+                    unit.write_register(1108 + i,led_data,0,6)
+            # for i in range(0,5):
+            #     panel_input_05 = unit.read_register(i + 1100,0,3)
+            #     print("\n panel_input_05 {} -> {}".format(i, panel_input_05))
+            #     unit.write_register(1108 + i,panel_input_05,0,6)
 
         except Exception as error:
             print("Unable to read Modbus Node ",unit.address)

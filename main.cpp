@@ -25,7 +25,7 @@
 
 #define MB_DE_PIN        2
 
-auto_init_mutex(my_mutex);
+auto_init_mutex(io_mutex);
 uint32_t owner_out;
 
 uint8_t panel_led_values_temp[8];
@@ -33,6 +33,17 @@ uint8_t panel_switch_values_temp[8];
 uint8_t led_history_ringbuffer[8][32] = {0};
 uint8_t led_history_ringbuffer_index[8] = {0};
 uint8_t led_history_one_count[8][8] = {0}; // per bit
+
+
+
+typedef enum {
+  PANEL_LED_IMMEDIATE = 0,
+  PANEL_LED_LOW_PASS_FILTED = 1,
+} PanelLedPattern;
+
+
+uint8_t param_delay_us = 50;
+uint8_t param_led_pattern = PANEL_LED_LOW_PASS_FILTED;
 
 static char brightness_phase_lookup[32][31] =
 { //
@@ -129,16 +140,19 @@ void modbus_process_on_core_1()
    // do we have to update
     modbus.mb_process();
 
-    if (mutex_try_enter(&my_mutex,&owner_out)){
-        for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
-          // 
-          panel_led_values_temp[out_reg_idx]= modbus.panel_led_values[out_reg_idx];
-        }
+    if (mutex_try_enter(&io_mutex,&owner_out)){
+      // param
+      param_led_pattern = modbus.command_param[0];
+      param_delay_us = modbus.command_param[1];
 
-        for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
-          modbus.panel_switch_values[in_reg_idx] = panel_switch_values_temp[in_reg_idx];
-        }
-        mutex_exit(&my_mutex);
+      for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
+        panel_led_values_temp[out_reg_idx]= modbus.panel_led_values[out_reg_idx];
+      }
+
+      for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
+        modbus.panel_switch_values[in_reg_idx] = panel_switch_values_temp[in_reg_idx];
+      }
+      mutex_exit(&io_mutex);
     }
 
     // uint16_t time_sec = (uint16_t) (time_us_64()/(1000));
@@ -148,11 +162,6 @@ void modbus_process_on_core_1()
 
   }
 }
-
-typedef enum {
-  PANEL_LED_IMMEDIATE = 0,
-  PANEL_LED_LOW_PASS_FILTED = 1,
-} PanelLedPattern;
 
 int main(void)
 {
@@ -181,7 +190,9 @@ int main(void)
 
   multicore_launch_core1(modbus_process_on_core_1);
 
-  PanelLedPattern led_mode = PANEL_LED_LOW_PASS_FILTED;
+
+  uint8_t led_mode_temp = param_led_pattern;
+  uint64_t param_delay_us_temp = param_delay_us;
 
   while(true)
   {
@@ -191,7 +202,11 @@ int main(void)
     for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
       input_temp[in_reg_idx] = get_input(in_reg_idx);
     }
-    if (mutex_try_enter(&my_mutex,&owner_out)){
+
+
+    if (mutex_try_enter(&io_mutex,&owner_out)){
+      led_mode_temp = param_led_pattern;
+      param_delay_us_temp = param_delay_us;
 
       for (int in_reg_idx = 0; in_reg_idx < 6; in_reg_idx++) {
         panel_switch_values_temp[in_reg_idx] = input_temp[in_reg_idx];
@@ -201,8 +216,11 @@ int main(void)
         output_temp[out_reg_idx] = panel_led_values_temp[out_reg_idx];
       }
 
-      mutex_exit(&my_mutex);
+      mutex_exit(&io_mutex);
     }
+
+    PanelLedPattern led_mode = 
+      led_mode_temp == 0 ? PANEL_LED_IMMEDIATE : PANEL_LED_LOW_PASS_FILTED;
 
     if (led_mode == PANEL_LED_IMMEDIATE) {
       for (int out_reg_idx = 0; out_reg_idx < 8; out_reg_idx++) {
@@ -246,7 +264,7 @@ int main(void)
               - ModbusPico::MB_COMMAND_PANEL_REGISTER_START, 
               value);
           }
-        sleep_us(50);  // delay
+        sleep_us(param_delay_us_temp);  // delay
       }
     }
     // sleep_ms(1000);

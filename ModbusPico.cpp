@@ -62,6 +62,15 @@ uint8_t ModbusPico::mb_read_holding_register(uint16_t addr, uint16_t* reg)
 
     switch(addr)
      {
+        case MB_COMMAND_PARAM_0_REGISTER:
+        case MB_COMMAND_PARAM_1_REGISTER:
+        case MB_COMMAND_PARAM_2_REGISTER:
+        {
+          *reg = command_param[addr - MB_COMMAND_PARAM_0_REGISTER];
+          return MB_NO_ERROR;
+
+        }
+          
         case MB_COMMAND_PANEL_SWITCH_0_INPUT_REGISTER:
         case MB_COMMAND_PANEL_SWITCH_1_INPUT_REGISTER:
         case MB_COMMAND_PANEL_SWITCH_2_INPUT_REGISTER:
